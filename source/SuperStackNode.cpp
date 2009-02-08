@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SuperProfiler
 {
 	SuperStackNode::SuperStackNode(SuperStackNode * setParent, SuperFunctionData * setFuncData) : parent(setParent), funcData(setFuncData),
-																								  startTime(0), endTime(0),
+																								  startTime(0), endTime(0), totalTime(0),
 																								  currentAvgBufferPos(0),
 																								  numTimesCalled(0)
 	{
@@ -46,6 +46,7 @@ namespace SuperProfiler
 		funcData = NULL;
 		startTime = 0;
 		endTime = 0;
+		totalTime = 0;
 		numTimesCalled = 0;
 		avgBuffer.clear();
 
@@ -135,6 +136,7 @@ namespace SuperProfiler
 		double timeDiff = endTime - startTime;
 		funcData->AddToTotalTime(timeDiff);
 
+		AddToTotalTime(timeDiff);
 		AddAvgSample(timeDiff);
 	}
 
@@ -142,6 +144,12 @@ namespace SuperProfiler
 	double SuperStackNode::GetEndTime(void) const
 	{
 		return endTime;
+	}
+
+
+	double SuperStackNode::GetTotalTime(void) const
+	{
+		return totalTime;
 	}
 
 
@@ -155,6 +163,12 @@ namespace SuperProfiler
 		}
 
 		return avgTime / numAvgTimes;
+	}
+
+
+	void SuperStackNode::AddToTotalTime(double sample)
+	{
+		totalTime += sample;
 	}
 
 

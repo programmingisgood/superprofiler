@@ -21,25 +21,46 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
+#ifndef SUPERROOT_H
+#define SUPERROOT_H
+
 #include "SuperProfile.h"
-#include "SuperRoot.h"
+#include "SuperTimer.h"
+#include "SuperStack.h"
+#include "SuperFuncDataList.h"
 
 namespace SuperProfiler
 {
-	SuperProfile::SuperProfile(const std::string & setProfileName) : profileName(setProfileName)
+	class SuperOutput;
+
+	class SuperRoot
 	{
-		SuperRoot::PushProfile(this);
-	}
+	public:
+		static void Reset(void);
+		static bool OutputResults(SuperOutput & output);
 
+	private:
+		//No default construction!
+		SuperRoot();
+		//No copies!
+		SuperRoot(const SuperRoot &);
+		const SuperRoot & operator=(const SuperRoot &);
 
-	SuperProfile::~SuperProfile()
-	{
-		SuperRoot::PopProfile();
-	}
+		friend class SuperProfile;
+		static void PushProfile(SuperProfile * setStart);
+		static void PopProfile(void);
 
+		/**
+		* Find an existing SuperFunctionData that matches the passed in name.
+		**/
+		static SuperFunctionData * FindFuncData(const std::string & name);
+		static void AddNewFuncData(SuperFunctionData * newFuncData);
 
-	const std::string & SuperProfile::GetName(void) const
-	{
-		return profileName;
-	}
+		static SuperTimer superTimer;
+		static SuperStack superStack;
+		static SuperFuncDataListWrapper superFuncDataListWrapper;
+		static bool recording;
+	};
 }
+
+#endif

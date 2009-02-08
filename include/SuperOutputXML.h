@@ -21,47 +21,39 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef TESTOUTPUT_H
-#define TESTOUTPUT_H
+#ifndef SUPEROUTPUTXML_H
+#define SUPEROUTPUTXML_H
 
 #include "SuperOutput.h"
-#include <string>
-#include <map>
+#include <fstream>
 
 namespace SuperProfiler
 {
-	class TestOutput : public SuperOutput
+	class SuperOutputXML : public SuperOutput
 	{
 	public:
-		TestOutput();
-		~TestOutput();
+		SuperOutputXML(const std::string & fileName);
+		~SuperOutputXML();
 
-		void OutputFunctionData(FuncDataList & funcData, double totalRunTime);
+		void OutputFunctionData(SuperFuncDataList & funcData, double totalRunTime);
 		void OutputCallTree(SuperStackNode * stack);
 
-		size_t GetMaxDepth(void);
-		double GetTotalRunTime(void) const;
-
-		/**
-		* Returns the total run time for the function name passed in.
-		* Returns -1 if the passed in function name could not be found.
-		**/
-		double GetFunctionRunTime(const std::string & functionName) const;
-		size_t GetFunctionCallAmount(const std::string & functionName) const;
-
 	private:
+		//No default construction!
+		SuperOutputXML();
 		//No copies!
-		TestOutput(const TestOutput &);
-		const TestOutput & operator=(const TestOutput &);
+		SuperOutputXML(const SuperOutputXML &);
+		const SuperOutputXML & operator=(const SuperOutputXML &);
 
-		void FindMaxDepth(SuperStackNode * currNode, size_t currDepth);
+		void OutputNode(SuperStackNode * outputNode, size_t currDepth, std::ofstream & outputFile);
+		/**
+		* Simply outputs tabs character to the stream.
+		**/
+		void OutputTabs(size_t howMany, std::ofstream & outputFile);
 
-		size_t maxDepth;
-		double totalRunTime;
-		typedef std::map<std::string, double> FuncTimeList;
-		FuncTimeList funcTimeList;
-		typedef std::map<std::string, size_t> FuncCallAmountList;
-		FuncCallAmountList funcCallAmountList;
+		std::string ReplaceXMLSpecialCharacters(const std::string & search);
+
+		std::ofstream outputFile;
 	};
 }
 

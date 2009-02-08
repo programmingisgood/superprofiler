@@ -21,25 +21,29 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#include "SuperProfile.h"
-#include "SuperRoot.h"
+#ifndef SUPERUTILS_H
+#define SUPERUTILS_H
+
+#include <string>
 
 namespace SuperProfiler
 {
-	SuperProfile::SuperProfile(const std::string & setProfileName) : profileName(setProfileName)
+	class SuperUtils
 	{
-		SuperRoot::PushProfile(this);
-	}
+	public:
+		/**
+		* Simple utility to find occurrences of the "find" string in the "search" string and replace it with
+		* the "replace" string.
+		**/
+		static std::string FindAndReplace(const std::string & search, const std::string & find, const std::string & replace);
 
-
-	SuperProfile::~SuperProfile()
-	{
-		SuperRoot::PopProfile();
-	}
-
-
-	const std::string & SuperProfile::GetName(void) const
-	{
-		return profileName;
-	}
+	private:
+		//No default construction!
+		SuperUtils();
+		//No copies!
+		SuperUtils(const SuperUtils &);
+		const SuperUtils & operator=(const SuperUtils &);
+	};
 }
+
+#endif

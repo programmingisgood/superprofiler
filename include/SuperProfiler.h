@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SUPERPROFILER_H
 
 #include "SuperProfile.h"
-#include "Root.h"
+#include "SuperRoot.h"
 
 #ifndef SUPER_PROFILING_OFF
 	#define SUPER_PROFILE(FN) SuperProfiler::SuperProfile superProfileUniqueNameLaLaLa(FN);

@@ -149,11 +149,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\source\FuncDataList.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\Root.cpp"
+				RelativePath=".\source\SuperFuncDataList.cpp"
 				>
 			</File>
 			<File
@@ -165,7 +161,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\source\SuperOutputCSV.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\SuperOutputTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\SuperOutputText.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\SuperOutputXML.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\source\SuperProfile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\SuperRoot.cpp"
 				>
 			</File>
 			<File
@@ -181,11 +197,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\source\TestOutput.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\TextOutput.cpp"
+				RelativePath=".\source\SuperUtils.cpp"
 				>
 			</File>
 		</Filter>
@@ -195,11 +207,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\include\FuncDataList.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\Root.h"
+				RelativePath=".\include\SuperFuncDataList.h"
 				>
 			</File>
 			<File
@@ -211,11 +219,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\SuperOutputCSV.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\SuperOutputTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\SuperOutputText.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\SuperOutputXML.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\SuperProfile.h"
 				>
 			</File>
 			<File
 				RelativePath=".\include\SuperProfiler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\SuperRoot.h"
 				>
 			</File>
 			<File
@@ -231,11 +259,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\TestOutput.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\TextOutput.h"
+				RelativePath=".\include\SuperUtils.h"
 				>
 			</File>
 		</Filter>

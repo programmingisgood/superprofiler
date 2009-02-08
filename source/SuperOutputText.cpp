@@ -21,26 +21,29 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#include "TextOutput.h"
+#include "SuperOutputText.h"
 #include "SuperFunctionData.h"
 #include "SuperStackNode.h"
 #include <iomanip>
 
 namespace SuperProfiler
 {
-	TextOutput::TextOutput(const std::string & fileName)
+	SuperOutputText::SuperOutputText(const std::string & fileName)
 	{
 		outputFile.open(fileName.c_str(), std::ios::trunc);
+
+		//Define the format for the stream up front
+		outputFile << std::fixed << std::setprecision(3);
 	}
 
 
-	TextOutput::~TextOutput()
+	SuperOutputText::~SuperOutputText()
 	{
 		outputFile.close();
 	}
 
 
-	void TextOutput::OutputFunctionData(FuncDataList & funcData, double totalRunTime)
+	void SuperOutputText::OutputFunctionData(SuperFuncDataList & funcData, double totalRunTime)
 	{
 		//First, sort the function list
 		SortByTime(funcData, true);
@@ -50,10 +53,9 @@ namespace SuperProfiler
 		outputFile << "Function List | Total Run Time=" << totalRunTime << " | Total Profiled Function Calls=" << totalNumFuncCalls;
 		outputFile << std::endl << "---------------------------------------------------------------------------------" << std::endl;
 
-		FuncDataList::iterator iter;
+		SuperFuncDataList::iterator iter;
 		for (iter = funcData.begin(); iter != funcData.end(); iter++)
 		{
-			outputFile << std::fixed << std::setprecision(2);
 			outputFile << (*iter)->GetName() << " | ";
 			outputFile << "Total Time=" << (*iter)->GetTotalTime() << " | ";
 			outputFile << ((*iter)->GetTotalTime() / totalRunTime) * 100 << "% of time | ";
@@ -65,16 +67,16 @@ namespace SuperProfiler
 	}
 
 
-	void TextOutput::OutputCallTree(SuperStackNode * stack)
+	void SuperOutputText::OutputCallTree(SuperStackNode * stack)
 	{
-		outputFile << std::fixed << std::setprecision(4) << "Call Tree";
+		outputFile << "Call Tree";
 		outputFile << std::endl << "---------------------------------------------------------------------------------" << std::endl;
 
 		OutputNode(stack, 0, outputFile);
 	}
 
 
-	void TextOutput::OutputNode(SuperStackNode * outputNode, size_t currDepth, std::ofstream & outputFile)
+	void SuperOutputText::OutputNode(SuperStackNode * outputNode, size_t currDepth, std::ofstream & outputFile)
 	{
 		//Special case for the root node
 		if (currDepth == 0)
@@ -89,6 +91,7 @@ namespace SuperProfiler
 				outputFile << "    ";
 			}
 			outputFile << outputNode->GetFuncData()->GetName() << " | ";
+			outputFile << "Total Time=" << outputNode->GetTotalTime() << " | ";
 			outputFile << "Avg Time=" << outputNode->GetAverageTime() << " | ";
 			outputFile << "Times called=" << outputNode->GetNumTimesCalled() << std::endl;
 		}

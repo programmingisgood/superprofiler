@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SUPEROUTPUT_H
 #define SUPEROUTPUT_H
 
-#include "FuncDataList.h"
+#include "SuperFuncDataList.h"
 
 namespace SuperProfiler
 {
@@ -33,16 +33,16 @@ namespace SuperProfiler
 	class SuperOutput
 	{
 	public:
-		virtual void OutputFunctionData(FuncDataList & funcData, double totalRunTime) = 0;
+		virtual void OutputFunctionData(SuperFuncDataList & funcData, double totalRunTime) = 0;
 		virtual void OutputCallTree(SuperStackNode * stack) = 0;
 
 	protected:
 		/**
 		* Will sort the list by time, highest time first if second param is true.
 		**/
-		void SortByTime(FuncDataList & funcData, bool highFirst);
+		void SortByTime(SuperFuncDataList & funcData, bool highFirst);
 
-		size_t GetTotalNumFunctionCalls(FuncDataList & funcData);
+		size_t GetTotalNumFunctionCalls(SuperFuncDataList & funcData);
 
 	private:
 	};

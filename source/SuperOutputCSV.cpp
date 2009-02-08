@@ -21,29 +21,58 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#include "FuncDataList.h"
+#include "SuperOutputCSV.h"
 #include "SuperFunctionData.h"
+#include "SuperUtils.h"
+#include <iomanip>
 
 namespace SuperProfiler
 {
-	FuncDataListWrapper::FuncDataListWrapper()
+	SuperOutputCSV::SuperOutputCSV(const std::string & fileName)
 	{
+		outputFile.open(fileName.c_str(), std::ios::trunc);
 	}
 
 
-	FuncDataListWrapper::~FuncDataListWrapper()
+	SuperOutputCSV::~SuperOutputCSV()
 	{
-		Reset();
+		outputFile.close();
 	}
 
 
-	void FuncDataListWrapper::Reset(void)
+	void SuperOutputCSV::OutputFunctionData(SuperFuncDataList & funcData, double totalRunTime)
 	{
-		FuncDataList::iterator iter;
-		for (iter = funcDataList.begin(); iter != funcDataList.end(); iter++)
+		//First, sort the function list
+		SortByTime(funcData, true);
+
+		size_t totalNumFuncCalls = GetTotalNumFunctionCalls(funcData);
+
+		//First, list the headers
+		outputFile << "Function Name,Total Run Time,Percent of Time,Total Calls,Percent of Calls";
+
+		SuperFuncDataList::iterator iter;
+		for (iter = funcData.begin(); iter != funcData.end(); iter++)
 		{
-			delete (*iter);
+			//First, insert the end line needed before the previous line
+			//This makes it so there won't be any unneeded end lines at the end of the file
+			outputFile << std::endl;
+
+			std::string funcName = (*iter)->GetName();
+			//Replace any commas in the name with semi-colons
+			funcName = SuperUtils::FindAndReplace(funcName, ",", ";");
+
+			outputFile << std::fixed << std::setprecision(2);
+			outputFile << funcName << ",";
+			outputFile << (*iter)->GetTotalTime() << ",";
+			outputFile << ((*iter)->GetTotalTime() / totalRunTime) * 100 << "%,";
+			outputFile << (*iter)->GetTotalNumTimesCalled() << ",";
+			outputFile << (static_cast<double>((*iter)->GetTotalNumTimesCalled()) / static_cast<double>(totalNumFuncCalls)) * 100 << "%";
 		}
-		funcDataList.clear();
+	}
+
+
+	void SuperOutputCSV::OutputCallTree(SuperStackNode * stack)
+	{
+		//Cannot output call tree to CSV file
 	}
 }

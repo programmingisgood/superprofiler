@@ -21,30 +21,37 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#include "Root.h"
+#include "SuperRoot.h"
 #include "SuperOutput.h"
 #include "SuperFunctionData.h"
 
-SuperProfiler::SuperTimer SuperProfiler::Root::superTimer;
-SuperProfiler::SuperStack SuperProfiler::Root::superStack;
-SuperProfiler::FuncDataListWrapper SuperProfiler::Root::funcDataListWrapper;
+SuperProfiler::SuperTimer SuperProfiler::SuperRoot::superTimer;
+SuperProfiler::SuperStack SuperProfiler::SuperRoot::superStack;
+SuperProfiler::SuperFuncDataListWrapper SuperProfiler::SuperRoot::superFuncDataListWrapper;
+//Ready to record right away
+bool SuperProfiler::SuperRoot::recording = true;
 
 namespace SuperProfiler
 {
-	void Root::Reset(void)
+	void SuperRoot::Reset(void)
 	{
 		superTimer.Reset();
 		superStack.Reset();
-		funcDataListWrapper.Reset();
+		superFuncDataListWrapper.Reset();
+		//Ready to record
+		recording = true;
 	}
 
 
-	bool Root::OutputResults(SuperOutput & output)
+	bool SuperRoot::OutputResults(SuperOutput & output)
 	{
 		if (superStack.GetCurrentDepth() != 0)
 		{
 			return false;
 		}
+
+		//Done recording once the results need to be outputted
+		recording = false;
 
 		//Calculate the total run time by adding the times of all children times off the root together
 		double totalRunTime = 0;
@@ -54,35 +61,41 @@ namespace SuperProfiler
 			SuperStackNode * child = superStack.GetChild(c);
 			totalRunTime += child->GetFuncData()->GetTotalTime();
 		}
-		output.OutputFunctionData(funcDataListWrapper.funcDataList, totalRunTime);
+		output.OutputFunctionData(superFuncDataListWrapper.superFuncDataList, totalRunTime);
 		output.OutputCallTree(&superStack);
 
 		return true;
 	}
 
 
-	void Root::PushProfile(SuperProfile * setStart)
+	void SuperRoot::PushProfile(SuperProfile * setStart)
 	{
-		SuperFunctionData * foundFunc = FindFuncData(setStart->GetName());
-		if (!foundFunc)
+		if (recording)
 		{
-			foundFunc = new SuperFunctionData(setStart->GetName());
-			AddNewFuncData(foundFunc);
+			SuperFunctionData * foundFunc = FindFuncData(setStart->GetName());
+			if (!foundFunc)
+			{
+				foundFunc = new SuperFunctionData(setStart->GetName());
+				AddNewFuncData(foundFunc);
+			}
+			superStack.Push(foundFunc, superTimer.GetTimeSeconds());
 		}
-		superStack.Push(foundFunc, superTimer.GetTimeSeconds());
 	}
 
 
-	void Root::PopProfile(void)
+	void SuperRoot::PopProfile(void)
 	{
-		superStack.Pop(superTimer.GetTimeSeconds());
+		if (recording)
+		{
+			superStack.Pop(superTimer.GetTimeSeconds());
+		}
 	}
 
 
-	SuperFunctionData * Root::FindFuncData(const std::string & name)
+	SuperFunctionData * SuperRoot::FindFuncData(const std::string & name)
 	{
-		FuncDataList::iterator iter;
-		for (iter = funcDataListWrapper.funcDataList.begin(); iter != funcDataListWrapper.funcDataList.end(); iter++)
+		SuperFuncDataList::iterator iter;
+		for (iter = superFuncDataListWrapper.superFuncDataList.begin(); iter != superFuncDataListWrapper.superFuncDataList.end(); iter++)
 		{
 			if ((*iter)->GetName() == name)
 			{
@@ -93,7 +106,7 @@ namespace SuperProfiler
 	}
 
 
-	void Root::AddNewFuncData(SuperFunctionData * newFuncData)
+	void SuperRoot::AddNewFuncData(SuperFunctionData * newFuncData)
 	{
 		if (FindFuncData(newFuncData->GetName()))
 		{
@@ -101,6 +114,6 @@ namespace SuperProfiler
 			return;
 		}
 
-		funcDataListWrapper.funcDataList.push_back(newFuncData);
+		superFuncDataListWrapper.superFuncDataList.push_back(newFuncData);
 	}
 }

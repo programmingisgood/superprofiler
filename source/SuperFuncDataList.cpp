@@ -21,34 +21,29 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef TEXTOUTPUT_H
-#define TEXTOUTPUT_H
-
-#include "SuperOutput.h"
-#include <fstream>
+#include "SuperFuncDataList.h"
+#include "SuperFunctionData.h"
 
 namespace SuperProfiler
 {
-	class TextOutput : public SuperOutput
+	SuperFuncDataListWrapper::SuperFuncDataListWrapper()
 	{
-	public:
-		TextOutput(const std::string & fileName);
-		~TextOutput();
+	}
 
-		void OutputFunctionData(FuncDataList & funcData, double totalRunTime);
-		void OutputCallTree(SuperStackNode * stack);
 
-	private:
-		//No default construction!
-		TextOutput();
-		//No copies!
-		TextOutput(const TextOutput &);
-		const TextOutput & operator=(const TextOutput &);
+	SuperFuncDataListWrapper::~SuperFuncDataListWrapper()
+	{
+		Reset();
+	}
 
-		void OutputNode(SuperStackNode * outputNode, size_t currDepth, std::ofstream & outputFile);
 
-		std::ofstream outputFile;
-	};
+	void SuperFuncDataListWrapper::Reset(void)
+	{
+		SuperFuncDataList::iterator iter;
+		for (iter = superFuncDataList.begin(); iter != superFuncDataList.end(); iter++)
+		{
+			delete (*iter);
+		}
+		superFuncDataList.clear();
+	}
 }
-
-#endif
