@@ -21,44 +21,31 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SP_ROOT_H
-#define SP_ROOT_H
+#ifndef SUPEROUTPUTCSV_H
+#define SUPEROUTPUTCSV_H
 
-#include "SuperProfile.h"
-#include "SuperTimer.h"
-#include "SuperStack.h"
-#include "FuncDataList.h"
+#include "SuperOutput.h"
+#include <fstream>
 
 namespace SuperProfiler
 {
-	class SuperOutput;
-
-	class Root
+	class SuperOutputCSV : public SuperOutput
 	{
 	public:
-		static void Reset(void);
-		static bool OutputResults(SuperOutput & output);
+		SuperOutputCSV(const std::string & fileName);
+		~SuperOutputCSV();
+
+		void OutputFunctionData(SuperFuncDataList & funcData, double totalRunTime);
+		void OutputCallTree(SuperStackNode * stack);
 
 	private:
 		//No default construction!
-		Root();
+		SuperOutputCSV();
 		//No copies!
-		Root(const Root &);
-		const Root & operator=(const Root &);
+		SuperOutputCSV(const SuperOutputCSV &);
+		const SuperOutputCSV & operator=(const SuperOutputCSV &);
 
-		friend class SuperProfile;
-		static void PushProfile(SuperProfile * setStart);
-		static void PopProfile(void);
-
-		/**
-		* Find an existing SuperFunctionData that matches the passed in name.
-		**/
-		static SuperFunctionData * FindFuncData(const std::string & name);
-		static void AddNewFuncData(SuperFunctionData * newFuncData);
-
-		static SuperTimer superTimer;
-		static SuperStack superStack;
-		static FuncDataListWrapper funcDataListWrapper;
+		std::ofstream outputFile;
 	};
 }
 

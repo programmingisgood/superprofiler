@@ -21,25 +21,34 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#include "SuperProfile.h"
-#include "SuperRoot.h"
+#ifndef SUPEROUTPUTTEXT_H
+#define SUPEROUTPUTTEXT_H
+
+#include "SuperOutput.h"
+#include <fstream>
 
 namespace SuperProfiler
 {
-	SuperProfile::SuperProfile(const std::string & setProfileName) : profileName(setProfileName)
+	class SuperOutputText : public SuperOutput
 	{
-		SuperRoot::PushProfile(this);
-	}
+	public:
+		SuperOutputText(const std::string & fileName);
+		~SuperOutputText();
 
+		void OutputFunctionData(SuperFuncDataList & funcData, double totalRunTime);
+		void OutputCallTree(SuperStackNode * stack);
 
-	SuperProfile::~SuperProfile()
-	{
-		SuperRoot::PopProfile();
-	}
+	private:
+		//No default construction!
+		SuperOutputText();
+		//No copies!
+		SuperOutputText(const SuperOutputText &);
+		const SuperOutputText & operator=(const SuperOutputText &);
 
+		void OutputNode(SuperStackNode * outputNode, size_t currDepth, std::ofstream & outputFile);
 
-	const std::string & SuperProfile::GetName(void) const
-	{
-		return profileName;
-	}
+		std::ofstream outputFile;
+	};
 }
+
+#endif

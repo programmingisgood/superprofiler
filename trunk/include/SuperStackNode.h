@@ -55,6 +55,7 @@ namespace SuperProfiler
 		void SetEndTime(double setEndTime);
 		double GetEndTime(void) const;
 
+		double GetTotalTime(void) const;
 		double GetAverageTime(void) const;
 
 		size_t GetNumTimesCalled(void) const;
@@ -74,6 +75,7 @@ namespace SuperProfiler
 		SuperStackNode(const SuperStackNode &);
 		const SuperStackNode & operator=(const SuperStackNode &);
 
+		void AddToTotalTime(double sample);
 		void AddAvgSample(double sample);
 
 		SuperStackNode * parent;
@@ -82,6 +84,7 @@ namespace SuperProfiler
 		NodeList children;
 		double startTime;
 		double endTime;
+		double totalTime;
 		static const size_t AvgBufferSize = 100;
 		size_t currentAvgBufferPos;
 		typedef std::vector<double> AvgBuffer;

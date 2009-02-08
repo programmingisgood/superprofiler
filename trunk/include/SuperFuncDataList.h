@@ -21,25 +21,32 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#include "SuperProfile.h"
-#include "SuperRoot.h"
+#ifndef SUPERFUNCDATALIST_H
+#define SUPERFUNCDATALIST_H
+
+#include <list>
 
 namespace SuperProfiler
 {
-	SuperProfile::SuperProfile(const std::string & setProfileName) : profileName(setProfileName)
+	class SuperFunctionData;
+
+	typedef std::list<SuperFunctionData *> SuperFuncDataList;
+
+	class SuperFuncDataListWrapper
 	{
-		SuperRoot::PushProfile(this);
-	}
+	public:
+		SuperFuncDataListWrapper();
+		~SuperFuncDataListWrapper();
 
+		void Reset(void);
 
-	SuperProfile::~SuperProfile()
-	{
-		SuperRoot::PopProfile();
-	}
+		SuperFuncDataList superFuncDataList;
 
-
-	const std::string & SuperProfile::GetName(void) const
-	{
-		return profileName;
-	}
+	private:
+		//No copies!
+		SuperFuncDataListWrapper(const SuperFuncDataListWrapper &);
+		const SuperFuncDataListWrapper & operator=(const SuperFuncDataListWrapper &);
+	};
 }
+
+#endif

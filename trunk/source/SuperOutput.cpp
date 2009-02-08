@@ -47,7 +47,7 @@ namespace SuperProfiler
 	}
 
 
-	void SuperOutput::SortByTime(FuncDataList & funcData, bool highFirst)
+	void SuperOutput::SortByTime(SuperFuncDataList & funcData, bool highFirst)
 	{
 		if (highFirst)
 		{
@@ -60,10 +60,10 @@ namespace SuperProfiler
 	}
 
 
-	size_t SuperOutput::GetTotalNumFunctionCalls(FuncDataList & funcData)
+	size_t SuperOutput::GetTotalNumFunctionCalls(SuperFuncDataList & funcData)
 	{
 		size_t totalNum = 0;
-		FuncDataList::iterator iter;
+		SuperFuncDataList::iterator iter;
 		for (iter = funcData.begin(); iter != funcData.end(); iter++)
 		{
 			totalNum += (*iter)->GetTotalNumTimesCalled();

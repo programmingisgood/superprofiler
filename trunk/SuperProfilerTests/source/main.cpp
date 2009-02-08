@@ -21,60 +21,66 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
+//NOTE: Because the tests deal with time, they are designed to pass in release mode and so may fail in debug mode.
+//Effort as been made to make them pass in debug mode as well however.
 
 #include "UnitTest++.h"
 #include "SuperProfiler.h"
 #include "SuperFunctionData.h"
-#include "TestOutput.h"
-#include "TextOutput.h"
+#include "SuperUtils.h"
+#include "SuperOutputTest.h"
+#include "SuperOutputText.h"
+#include "SuperOutputCSV.h"
+#include "SuperOutputXML.h"
 #include <iostream>
 #include <fstream>
 
 
 SUITE(SuperProfilerTests)
 {
-	void TestFunctionCall1(void)
+	void TestFunctionCall1(float & byRef)
 	{
-		SUPER_PROFILE("void TestFunctionCall1(void)");
+		SUPER_PROFILE("TestFunctionCall1(float &)");
 
-		UnitTest::TimeHelpers::SleepMs(500);
+		UnitTest::TimeHelpers::SleepMs(10);
 	}
 
 
-	void TestFunctionCall2(void)
+	void TestFunctionCall2(int p1, bool p2)
 	{
-		SUPER_PROFILE("void TestFunctionCall2(void)");
+		SUPER_PROFILE("TestFunctionCall2(int, bool)");
 
-		UnitTest::TimeHelpers::SleepMs(25);
+		UnitTest::TimeHelpers::SleepMs(20);
 	}
 
 
 	void TestFunctionCall3(void)
 	{
-		SUPER_PROFILE("void TestFunctionCall3(void)");
+		SUPER_PROFILE("TestFunctionCall3()");
 
-		TestFunctionCall1();
+		float data = 0;
+		TestFunctionCall1(data);
 
-		UnitTest::TimeHelpers::SleepMs(50);
+		UnitTest::TimeHelpers::SleepMs(30);
 	}
 
 
 	void TestFunctionCall4(void)
 	{
-		SUPER_PROFILE("void TestFunctionCall4(void)");
+		SUPER_PROFILE("TestFunctionCall4()");
 
 		TestFunctionCall3();
-		TestFunctionCall2();
+		TestFunctionCall2(1, true);
 
-		UnitTest::TimeHelpers::SleepMs(100);
+		UnitTest::TimeHelpers::SleepMs(40);
 	}
 
 
 	void TestFunctionCallRecursion1(int & i)
 	{
-		SUPER_PROFILE("void TestFunctionCallRecursion1(int & i)");
+		SUPER_PROFILE("TestFunctionCallRecursion1(int &)");
 
-		UnitTest::TimeHelpers::SleepMs(100);
+		UnitTest::TimeHelpers::SleepMs(10);
 
 		if (i >= 4)
 		{
@@ -86,7 +92,7 @@ SUITE(SuperProfilerTests)
 	}
 
 
-	//This is to test the SuperStack without Root
+	//This is to test the SuperStack without SuperRoot
 	TEST(SuperStack_Alone)
 	{
 		SuperProfiler::SuperTimer testTimer;
@@ -153,48 +159,48 @@ SUITE(SuperProfilerTests)
 	}
 
 
-	TEST(Unused_TestOutput)
+	TEST(Unused_SuperOutputTest)
 	{
 		//Create a default test output object
-		SuperProfiler::TestOutput testOutput;
+		SuperProfiler::SuperOutputTest superOutputTest;
 
 		//Nothing written to the output, so it's values should be at default
-		CHECK_EQUAL(0, testOutput.GetMaxDepth());
+		CHECK_EQUAL(0, superOutputTest.GetMaxDepth());
 	}
 
 
-	TEST(No_Calls_TestOutput)
+	TEST(No_Calls_SuperOutputTest)
 	{
-		SuperProfiler::Root::Reset();
+		SuperProfiler::SuperRoot::Reset();
 
 		//Create a default test output object
-		SuperProfiler::TestOutput testOutput;
-		SuperProfiler::Root::OutputResults(testOutput);
+		SuperProfiler::SuperOutputTest superOutputTest;
+		SuperProfiler::SuperRoot::OutputResults(superOutputTest);
 
 		//Nothing written to the output, so it's values should be at default
-		CHECK_EQUAL(0, testOutput.GetMaxDepth());
+		CHECK_EQUAL(0, superOutputTest.GetMaxDepth());
 	}
 
 
-	TEST(One_Call_TestOutput)
+	TEST(One_Call_SuperOutputTest)
 	{
-		SuperProfiler::Root::Reset();
+		SuperProfiler::SuperRoot::Reset();
 
-		TestFunctionCall1();
+		float data = 0;
+		TestFunctionCall1(data);
 
 		//Create a default test output object
-		SuperProfiler::TestOutput testOutput;
-		SuperProfiler::Root::OutputResults(testOutput);
+		SuperProfiler::SuperOutputTest superOutputTest;
+		SuperProfiler::SuperRoot::OutputResults(superOutputTest);
 
 		//One function call
-		CHECK_EQUAL(1, testOutput.GetMaxDepth());
+		CHECK_EQUAL(1, superOutputTest.GetMaxDepth());
 	}
 
 
-	//NOTE: Because it deals with time, this test is only expected to work in release mode
-	TEST(Complex_TestOutput)
+	TEST(Complex_SuperOutputTest)
 	{
-		SuperProfiler::Root::Reset();
+		SuperProfiler::SuperRoot::Reset();
 
 		{
 			SUPER_PROFILE("MAIN()");
@@ -205,45 +211,54 @@ SUITE(SuperProfilerTests)
 		}
 
 		//Create a default test output object
-		SuperProfiler::TestOutput testOutput;
-		SuperProfiler::Root::OutputResults(testOutput);
+		SuperProfiler::SuperOutputTest superOutputTest;
+		SuperProfiler::SuperRoot::OutputResults(superOutputTest);
 
 		//Make sure the total run time is about what we expect
-		CHECK_CLOSE(1.35, testOutput.GetTotalRunTime(), 0.05);
+		CHECK_CLOSE(0.2, superOutputTest.GetTotalRunTime(), 0.05);
 
 		//Make sure MAIN() used 100% of the time
-		CHECK_EQUAL(testOutput.GetTotalRunTime(), testOutput.GetFunctionRunTime("MAIN()"));
+		CHECK_EQUAL(superOutputTest.GetTotalRunTime(), superOutputTest.GetFunctionRunTime("MAIN()"));
 
 		//Make sure TestFunctionCall4() was called twice
-		CHECK_EQUAL(2, testOutput.GetFunctionCallAmount("void TestFunctionCall4(void)"));
+		CHECK_EQUAL(2, superOutputTest.GetFunctionCallAmount("TestFunctionCall4()"));
+
+		//Check that TestFunctionCall4() in the call tree was called twice
+		CHECK_EQUAL(2, superOutputTest.GetCallTree().GetFunction("MAIN()")->GetFunction("TestFunctionCall4()")->GetCallAmount());
+
+		//Check that TestFunctionCall4() in the call tree took 200ms
+		CHECK_CLOSE(0.2, superOutputTest.GetCallTree().GetFunction("MAIN()")->GetFunction("TestFunctionCall4()")->GetRunTime(), 0.05);
+
+		//Check that TestFunctionCall4() in the call tree took 100ms on avg
+		CHECK_CLOSE(0.1, superOutputTest.GetCallTree().GetFunction("MAIN()")->GetFunction("TestFunctionCall4()")->GetAvgRunTime(), 0.05);
 	}
 
 
-	TEST(TextOutput_Invalid_Results)
+	TEST(SuperOutputText_Invalid_Results)
 	{
-		SuperProfiler::Root::Reset();
+		SuperProfiler::SuperRoot::Reset();
 
-		//Invalid profile since it is in the same scope as the SuperProfiler::Root::OutputResults() call.
+		//Invalid profile since it is in the same scope as the SuperProfiler::SuperRoot::OutputResults() call.
 		SUPER_PROFILE("MAIN()");
 
 		TestFunctionCall4();
 
-		//Create a default TextOutput object
-		SuperProfiler::TextOutput textOutput("SuperProfilerInvalidResults.txt");
+		//Create a default SuperOutputText object
+		SuperProfiler::SuperOutputText superOutputText("InvalidTXTResults.txt");
 		//This should fail since the above MAIN() profile is in the same scope as us
-		CHECK_EQUAL(false, SuperProfiler::Root::OutputResults(textOutput));
+		CHECK_EQUAL(false, SuperProfiler::SuperRoot::OutputResults(superOutputText));
 
 		//File should be empty
-		std::ifstream ifs("SuperProfilerInvalidResults.txt", std::ifstream::in);
+		std::ifstream ifs("InvalidTXTResults.txt", std::ifstream::in);
 		ifs.seekg(0, std::ios::end);
 		int fileLength = ifs.tellg();
 		CHECK_EQUAL(0, fileLength);
 	}
 
 
-	TEST(TextOutput_Valid_Results)
+	TEST(SuperOutputText_Valid_Results)
 	{
-		SuperProfiler::Root::Reset();
+		SuperProfiler::SuperRoot::Reset();
 
 		{
 			SUPER_PROFILE("MAIN()");
@@ -253,24 +268,121 @@ SUITE(SuperProfilerTests)
 			}
 		}
 
-		//Create a default TextOutput object
-		SuperProfiler::TextOutput textOutput("SuperProfilerValidResults.txt");
-		CHECK_EQUAL(true, SuperProfiler::Root::OutputResults(textOutput));
+		//Create a default SuperOutputText object
+		SuperProfiler::SuperOutputText superOutputText("ValidTXTResults.txt");
+		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(superOutputText));
+	}
+
+
+	TEST(CSVOutput_Valid_Results)
+	{
+		SuperProfiler::SuperRoot::Reset();
+
+		{
+			SUPER_PROFILE("MAIN()");
+			{
+				TestFunctionCall4();
+				TestFunctionCall4();
+			}
+		}
+
+		SuperProfiler::SuperOutputCSV csvOutput("ValidCSVResults.csv");
+		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(csvOutput));
 	}
 
 
 	TEST(Recursion_Function_Call)
 	{
-		SuperProfiler::Root::Reset();
+		SuperProfiler::SuperRoot::Reset();
 
 		int i = 0;
 		TestFunctionCallRecursion1(i);
 
 		//Create a default test output object
-		SuperProfiler::TestOutput testOutput;
-		SuperProfiler::Root::OutputResults(testOutput);
+		SuperProfiler::SuperOutputTest SuperOutputTest;
+		SuperProfiler::SuperRoot::OutputResults(SuperOutputTest);
 
-		CHECK_EQUAL(5, testOutput.GetMaxDepth());
+		CHECK_EQUAL(5, SuperOutputTest.GetMaxDepth());
+	}
+
+
+	TEST(Two_Outputs)
+	{
+		SuperProfiler::SuperRoot::Reset();
+
+		{
+			SUPER_PROFILE("MAIN()");
+			{
+				TestFunctionCall4();
+				TestFunctionCall4();
+			}
+		}
+
+		SuperProfiler::SuperOutputText superOutputText("TwoOutputsTXTResults.txt");
+		SuperProfiler::SuperOutputCSV csvOutput("TwoOutputsCSVResults.csv");
+		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(superOutputText));
+		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(csvOutput));
+	}
+
+
+	TEST(Three_Outputs)
+	{
+		SuperProfiler::SuperRoot::Reset();
+
+		{
+			SUPER_PROFILE("MAIN()");
+			{
+				TestFunctionCall4();
+				TestFunctionCall4();
+			}
+		}
+
+		SuperProfiler::SuperOutputText superOutputText("ThreeOutputsTXTResults.txt");
+		SuperProfiler::SuperOutputCSV csvOutput("ThreeOutputsCSVResults.csv");
+		SuperProfiler::SuperOutputXML xmlOutput("ThreeOutputsXMLResults.xml");
+		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(superOutputText));
+		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(csvOutput));
+		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(xmlOutput));
+	}
+
+
+	TEST(Util_SearchAndReplaceTest)
+	{
+		//Replace a character with a string that contains the replaced character
+		std::string testData1("Hello(int &, float &, Apple &)");
+		std::string testExpectedResults1("Hello(int &amp;, float &amp;, Apple &amp;)");
+		std::string testResult1 = SuperProfiler::SuperUtils::FindAndReplace(testData1, "&", "&amp;");
+		CHECK_EQUAL(testExpectedResults1, testResult1);
+
+		//Replace a string with a string
+		std::string testData2("Garlic Tomato Garlic");
+		std::string testExpectedResults2("Tomato Tomato Tomato");
+		std::string testResult2 = SuperProfiler::SuperUtils::FindAndReplace(testData2, "Garlic", "Tomato");
+		CHECK_EQUAL(testExpectedResults2, testResult2);
+
+		//Replace a string with nothing
+		std::string testData3("La1La2La, La1La2Mo");
+		std::string testExpectedResults3(", La1La2Mo");
+		std::string testResult3 = SuperProfiler::SuperUtils::FindAndReplace(testData3, "La1La2La", "");
+		CHECK_EQUAL(testExpectedResults3, testResult3);
+
+		//Replace nothing with a string
+		std::string testData4("Don't replace me :(");
+		std::string testExpectedResults4("Don't replace me :(");
+		std::string testResult4 = SuperProfiler::SuperUtils::FindAndReplace(testData4, "", "You have been replaced! :(");
+		CHECK_EQUAL(testExpectedResults4, testResult4);
+
+		//Empty search string
+		std::string testData5("");
+		std::string testExpectedResults5("");
+		std::string testResult5 = SuperProfiler::SuperUtils::FindAndReplace(testData5, "Hello", "Goodbye");
+		CHECK_EQUAL(testExpectedResults5, testResult5);
+
+		//Replace a string with a character
+		std::string testData6("Hello Mall");
+		std::string testExpectedResults6("Helo Mal");
+		std::string testResult6 = SuperProfiler::SuperUtils::FindAndReplace(testData6, "ll", "l");
+		CHECK_EQUAL(testExpectedResults6, testResult6);
 	}
 }
 

@@ -21,32 +21,26 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef FUNCDATALIST_H
-#define FUNCDATALIST_H
-
-#include <list>
+#include "SuperUtils.h"
 
 namespace SuperProfiler
 {
-	class SuperFunctionData;
-
-	typedef std::list<SuperFunctionData *> FuncDataList;
-
-	class FuncDataListWrapper
+	std::string SuperUtils::FindAndReplace(const std::string & search, const std::string & find, const std::string & replace)
 	{
-	public:
-		FuncDataListWrapper();
-		~FuncDataListWrapper();
+		std::string retString = search;
 
-		void Reset(void);
+		if (find.length() > 0)
+		{
+			std::string::size_type pos = 0;
+			while ((pos = retString.find(find, pos)) != std::string::npos)
+			{
+				std::string firstPart = retString.substr(0, pos);
+				std::string secondPart = retString.substr(pos + find.length(), search.size());
+				retString = firstPart + replace + secondPart;
+				pos = firstPart.length() + replace.length();
+			}
+		}
 
-		FuncDataList funcDataList;
-
-	private:
-		//No copies!
-		FuncDataListWrapper(const FuncDataListWrapper &);
-		const FuncDataListWrapper & operator=(const FuncDataListWrapper &);
-	};
+		return retString;
+	}
 }
-
-#endif
