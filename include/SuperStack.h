@@ -25,7 +25,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SUPERSTACK_H
 
 #include "SuperStackNode.h"
-#include <string>
 
 namespace SuperProfiler
 {
@@ -36,7 +35,7 @@ namespace SuperProfiler
 		~SuperStack();
 
 		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(double endTime);
+		void Pop(SuperFunctionData * setFuncData, double endTime);
 
 		size_t GetCurrentDepth(void) const;
 

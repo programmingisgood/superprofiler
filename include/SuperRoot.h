@@ -24,7 +24,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SUPERROOT_H
 #define SUPERROOT_H
 
-#include "SuperProfile.h"
 #include "SuperTimer.h"
 #include "SuperStack.h"
 #include "SuperFuncDataList.h"
@@ -37,6 +36,15 @@ namespace SuperProfiler
 	{
 	public:
 		static void Reset(void);
+
+		static void PushProfile(const char * name);
+		/**
+		* The name must be provided here just to ensure that a pop is called
+		* for every push in the correct order. Please use the SUPER_PROFILE()
+		* macro to guarantee this is true.
+		**/
+		static void PopProfile(const char * name);
+
 		static bool OutputResults(SuperOutput & output);
 
 	private:
@@ -46,14 +54,10 @@ namespace SuperProfiler
 		SuperRoot(const SuperRoot &);
 		const SuperRoot & operator=(const SuperRoot &);
 
-		friend class SuperProfile;
-		static void PushProfile(SuperProfile * setStart);
-		static void PopProfile(void);
-
 		/**
 		* Find an existing SuperFunctionData that matches the passed in name.
 		**/
-		static SuperFunctionData * FindFuncData(const std::string & name);
+		static SuperFunctionData * FindFuncData(const char * name);
 		static void AddNewFuncData(SuperFunctionData * newFuncData);
 
 		static SuperTimer superTimer;
