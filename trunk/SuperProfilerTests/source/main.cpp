@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "UnitTest++.h"
 #include "SuperProfiler.h"
 #include "SuperFunctionData.h"
+#include "SuperException.h"
 #include "SuperUtils.h"
 #include "SuperOutputTest.h"
 #include "SuperOutputText.h"
@@ -92,6 +93,26 @@ SUITE(SuperProfilerTests)
 	}
 
 
+	void PushAndPopProfileFunction(void)
+	{
+		SUPER_PROFILE_PUSH("PushAndPopProfileFunction()");
+
+		UnitTest::TimeHelpers::SleepMs(10);
+
+		SUPER_PROFILE_POP("PushAndPopProfileFunction()");
+	}
+
+
+	void InvalidPushAndPopProfileFunction(void)
+	{
+		SUPER_PROFILE_PUSH("PushAndPopProfileFunction()");
+
+		UnitTest::TimeHelpers::SleepMs(10);
+
+		SUPER_PROFILE_POP("AnotherPushAndPopProfileFunction()");
+	}
+
+
 	//This is to test the SuperStack without SuperRoot
 	TEST(SuperStack_Alone)
 	{
@@ -114,7 +135,7 @@ SUITE(SuperProfilerTests)
 				testStack.Push(&orange, testTimer.GetTimeSeconds());
 				{
 				}
-				testStack.Pop(testTimer.GetTimeSeconds());
+				testStack.Pop(&orange, testTimer.GetTimeSeconds());
 				//Child 1 again
 				testStack.Push(&orange, testTimer.GetTimeSeconds());
 				{
@@ -122,13 +143,13 @@ SUITE(SuperProfilerTests)
 					testStack.Push(&peach, testTimer.GetTimeSeconds());
 					{
 					}
-					testStack.Pop(testTimer.GetTimeSeconds());
+					testStack.Pop(&peach, testTimer.GetTimeSeconds());
 				}
-				testStack.Pop(testTimer.GetTimeSeconds());
+				testStack.Pop(&orange, testTimer.GetTimeSeconds());
 			}
-			testStack.Pop(testTimer.GetTimeSeconds());
+			testStack.Pop(&apple, testTimer.GetTimeSeconds());
 		}
-		testStack.Pop(testTimer.GetTimeSeconds());
+		testStack.Pop(&mainLoop, testTimer.GetTimeSeconds());
 
 		//Make sure the stack is at the proper depth
 		CHECK_EQUAL(0, testStack.GetCurrentDepth());
@@ -195,6 +216,54 @@ SUITE(SuperProfilerTests)
 
 		//One function call
 		CHECK_EQUAL(1, superOutputTest.GetMaxDepth());
+	}
+
+
+	TEST(No_Main_Call_Tree)
+	{
+		SuperProfiler::SuperRoot::Reset();
+
+		size_t numCalls = 5;
+		for (size_t i = 0; i < numCalls; i++)
+		{
+			TestFunctionCall4();
+		}
+		int numRecCalls = 0;
+		TestFunctionCallRecursion1(numRecCalls);
+
+		//Create a default test output object
+		SuperProfiler::SuperOutputTest superOutputTest;
+		SuperProfiler::SuperRoot::OutputResults(superOutputTest);
+
+		CHECK_EQUAL(numCalls, superOutputTest.GetFunctionCallAmount("TestFunctionCall4()"));
+		CHECK_EQUAL(numCalls, superOutputTest.GetCallTree().GetFunction("TestFunctionCall4()")->GetCallAmount());
+
+		//TestFunctionCallRecursion1() was called a total of 5 times
+		CHECK_EQUAL(5, superOutputTest.GetFunctionCallAmount("TestFunctionCallRecursion1(int &)"));
+		//Make sure that it was only called once per branch
+		CHECK_EQUAL(1, superOutputTest.GetCallTree().GetFunction("TestFunctionCallRecursion1(int &)")->GetCallAmount());
+		CHECK_EQUAL(1, superOutputTest.GetCallTree().GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->GetCallAmount());
+		CHECK_EQUAL(1, superOutputTest.GetCallTree().GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->GetCallAmount());
+		CHECK_EQUAL(1, superOutputTest.GetCallTree().GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->GetCallAmount());
+		CHECK_EQUAL(1, superOutputTest.GetCallTree().GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->
+													 GetFunction("TestFunctionCallRecursion1(int &)")->GetCallAmount());
+		//Make sure the tree has the right amount of calls
+		int invalidNode = (superOutputTest.GetCallTree().GetFunction("TestFunctionCallRecursion1(int &)")->
+														 GetFunction("TestFunctionCallRecursion1(int &)")->
+														 GetFunction("TestFunctionCallRecursion1(int &)")->
+														 GetFunction("TestFunctionCallRecursion1(int &)")->
+														 GetFunction("TestFunctionCallRecursion1(int &)")->
+														 GetFunction("TestFunctionCallRecursion1(int &)") == NULL) ? 0 : 1;
+		CHECK_EQUAL(0, invalidNode);
 	}
 
 
@@ -383,6 +452,32 @@ SUITE(SuperProfilerTests)
 		std::string testExpectedResults6("Helo Mal");
 		std::string testResult6 = SuperProfiler::SuperUtils::FindAndReplace(testData6, "ll", "l");
 		CHECK_EQUAL(testExpectedResults6, testResult6);
+	}
+
+
+	TEST(PushAndPopProfile)
+	{
+		SuperProfiler::SuperRoot::Reset();
+
+		PushAndPopProfileFunction();
+
+		//Create a default test output object
+		SuperProfiler::SuperOutputTest superOutputTest;
+		SuperProfiler::SuperRoot::OutputResults(superOutputTest);
+
+		//Make sure StartAndStopProfileFunction() used 100% of the time
+		CHECK_EQUAL(superOutputTest.GetTotalRunTime(), superOutputTest.GetFunctionRunTime("PushAndPopProfileFunction()"));
+
+		//One function call
+		CHECK_EQUAL(1, superOutputTest.GetCallTree().GetFunction("PushAndPopProfileFunction()")->GetCallAmount());
+	}
+
+
+	TEST(InvalidPushAndPopProfile)
+	{
+		SuperProfiler::SuperRoot::Reset();
+
+		CHECK_THROW(InvalidPushAndPopProfileFunction(), SuperProfiler::SuperException);
 	}
 }
 

@@ -21,27 +21,58 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERPROFILE_H
-#define SUPERPROFILE_H
+#ifndef SUPEREXCEPTION_H
+#define SUPEREXCEPTION_H
+
+#include <stdexcept>
+#include <string>
+
+#define SUPER_EXCEPTION(WHAT) SuperException((WHAT), __FUNCTION__, __FILE__, __LINE__)
 
 namespace SuperProfiler
 {
-	class SuperProfile
+	class SuperException : public std::exception
 	{
 	public:
-		SuperProfile(const char * setProfileName);
-		~SuperProfile();
+		SuperException(const std::string & whatArg, const char * whichFunc = NULL, const char * whichFile = NULL, unsigned long whatLine = 0) throw() :
+					   whatStr(whatArg), func(whichFunc), file(whichFile), line(whatLine)
+		{
+		}
 
-		const char * GetName(void) const;
+		~SuperException() throw()
+		{
+		}
+
+		const char * what() const throw()
+		{
+			return whatStr.c_str();
+		}
+
+		void SetWhat(const std::string & setWhat)
+		{
+			whatStr = setWhat;
+		}
+
+		const char * GetFunction(void) const throw()
+		{
+			return func;
+		}
+
+		const char * GetFile() const throw()
+		{
+			return file;
+		}
+
+		unsigned long GetLine() const throw()
+		{
+			return line;
+		}
 
 	private:
-		//No default construction!
-		SuperProfile();
-		//No copies!
-		SuperProfile(const SuperProfile &);
-		const SuperProfile & operator=(const SuperProfile &);
-
-		const char * profileName;
+		std::string whatStr;
+		const char * func;
+		const char * file;
+		unsigned long line;
 	};
 }
 

@@ -26,19 +26,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SuperProfiler
 {
-	SuperProfile::SuperProfile(const std::string & setProfileName) : profileName(setProfileName)
+	SuperProfile::SuperProfile(const char * setProfileName) : profileName(setProfileName)
 	{
-		SuperRoot::PushProfile(this);
+		SuperRoot::PushProfile(profileName);
 	}
 
 
 	SuperProfile::~SuperProfile()
 	{
-		SuperRoot::PopProfile();
+		SuperRoot::PopProfile(profileName);
 	}
 
 
-	const std::string & SuperProfile::GetName(void) const
+	const char * SuperProfile::GetName(void) const
 	{
 		return profileName;
 	}

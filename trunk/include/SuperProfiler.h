@@ -29,8 +29,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef SUPER_PROFILING_OFF
 	#define SUPER_PROFILE(FN) SuperProfiler::SuperProfile superProfileUniqueNameLaLaLa(FN);
+	#define SUPER_PROFILE_PUSH(FN) SuperProfiler::SuperRoot::PushProfile(FN);
+	#define SUPER_PROFILE_POP(FN) SuperProfiler::SuperRoot::PopProfile(FN);
 #else
 	#define SUPER_PROFILE(FN) ;
-#endif 
+	#define SUPER_PROFILE_PUSH(FN) ;
+	#define SUPER_PROFILE_POP() ;
+#endif
 
 #endif

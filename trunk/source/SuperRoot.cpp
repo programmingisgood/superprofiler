@@ -24,6 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SuperRoot.h"
 #include "SuperOutput.h"
 #include "SuperFunctionData.h"
+#include "SuperException.h"
 
 SuperProfiler::SuperTimer SuperProfiler::SuperRoot::superTimer;
 SuperProfiler::SuperStack SuperProfiler::SuperRoot::superStack;
@@ -68,14 +69,14 @@ namespace SuperProfiler
 	}
 
 
-	void SuperRoot::PushProfile(SuperProfile * setStart)
+	void SuperRoot::PushProfile(const char * name)
 	{
 		if (recording)
 		{
-			SuperFunctionData * foundFunc = FindFuncData(setStart->GetName());
+			SuperFunctionData * foundFunc = FindFuncData(name);
 			if (!foundFunc)
 			{
-				foundFunc = new SuperFunctionData(setStart->GetName());
+				foundFunc = new SuperFunctionData(name);
 				AddNewFuncData(foundFunc);
 			}
 			superStack.Push(foundFunc, superTimer.GetTimeSeconds());
@@ -83,16 +84,21 @@ namespace SuperProfiler
 	}
 
 
-	void SuperRoot::PopProfile(void)
+	void SuperRoot::PopProfile(const char * name)
 	{
 		if (recording)
 		{
-			superStack.Pop(superTimer.GetTimeSeconds());
+			SuperFunctionData * foundFunc = FindFuncData(name);
+			if (!foundFunc)
+			{
+				throw SUPER_EXCEPTION(std::string("Function named ") + name + " not found in SuperRoot::PopProfile()");
+			}
+			superStack.Pop(foundFunc, superTimer.GetTimeSeconds());
 		}
 	}
 
 
-	SuperFunctionData * SuperRoot::FindFuncData(const std::string & name)
+	SuperFunctionData * SuperRoot::FindFuncData(const char * name)
 	{
 		SuperFuncDataList::iterator iter;
 		for (iter = superFuncDataListWrapper.superFuncDataList.begin(); iter != superFuncDataListWrapper.superFuncDataList.end(); iter++)

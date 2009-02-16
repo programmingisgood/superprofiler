@@ -23,6 +23,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "SuperStack.h"
 #include "SuperFunctionData.h"
+#include "SuperException.h"
 
 namespace SuperProfiler
 {
@@ -54,8 +55,18 @@ namespace SuperProfiler
 		}
 		else
 		{
-			currentChild = new SuperStackNode(this, setFuncData);
-			AddChild(currentChild);
+			//First check if there is already a child that matches the passed in THIS node
+			SuperStackNode * existingChild = this->GetChild(setFuncData);
+			if (existingChild)
+			{
+				currentChild = existingChild;
+			}
+			else
+			{
+				//Otherwise, create the new child
+				currentChild = new SuperStackNode(this, setFuncData);
+				AddChild(currentChild);
+			}
 		}
 
 		if (currentChild)
@@ -67,10 +78,21 @@ namespace SuperProfiler
 	}
 
 
-	void SuperStack::Pop(double endTime)
+	void SuperStack::Pop(SuperFunctionData * setFuncData, double endTime)
 	{
 		if (currentChild)
 		{
+			//Make sure the correct function is being popped
+			if (currentChild->GetFuncData() != setFuncData)
+			{
+				if (setFuncData->GetName() && currentChild->GetFuncData()->GetName())
+				{
+					throw SUPER_EXCEPTION(std::string("Function named ") + setFuncData->GetName() + " passed into SuperStack::Pop() when " +
+										  currentChild->GetFuncData()->GetName() + " was expected");
+				}
+				throw SUPER_EXCEPTION(std::string("Invalid pop detected in SuperStack::Pop()"));
+			}
+
 			//Mark time so we can calculate an average
 			currentChild->SetEndTime(endTime);
 

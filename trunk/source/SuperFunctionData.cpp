@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SuperProfiler
 {
-	SuperFunctionData::SuperFunctionData(const std::string & setFuncName) : funcName(setFuncName), totalTime(0),
-																			totalNumTimesCalled(0)
+	SuperFunctionData::SuperFunctionData(const char * setFuncName) : funcName(setFuncName), totalTime(0),
+																	 totalNumTimesCalled(0)
 	{
 	}
 
@@ -36,7 +36,7 @@ namespace SuperProfiler
 	}
 
 
-	const std::string & SuperFunctionData::GetName(void) const
+	const char * SuperFunctionData::GetName(void) const
 	{
 		return funcName;
 	}

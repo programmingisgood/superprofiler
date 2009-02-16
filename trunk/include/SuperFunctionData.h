@@ -24,17 +24,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SUPERFUNCTIONDATA_H
 #define SUPERFUNCTIONDATA_H
 
-#include <string>
-
 namespace SuperProfiler
 {
 	class SuperFunctionData
 	{
 	public:
-		SuperFunctionData(const std::string & setFuncName);
+		SuperFunctionData(const char * setFuncName);
 		~SuperFunctionData();
 
-		const std::string & GetName(void) const;
+		const char * GetName(void) const;
 
 		void AddToTotalTime(double addTime);
 		double GetTotalTime(void) const;
@@ -52,7 +50,7 @@ namespace SuperProfiler
 		SuperFunctionData(const SuperFunctionData &);
 		const SuperFunctionData & operator=(const SuperFunctionData &);
 
-		std::string funcName;
+		const char * funcName;
 		double totalTime;
 		size_t totalNumTimesCalled;
 	};

@@ -24,7 +24,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SUPERSTACKNODE_H
 #define SUPERSTACKNODE_H
 
-#include <string>
 #include <list>
 #include <vector>
 
