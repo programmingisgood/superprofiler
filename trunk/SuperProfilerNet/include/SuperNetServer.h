@@ -21,53 +21,69 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERFUNCTIONDATA_H
-#define SUPERFUNCTIONDATA_H
+#ifndef SUPERNETSERVER_H
+#define SUPERNETSERVER_H
 
-#include <string>
+#include "SuperNetHost.h"
+#include "SuperRootListener.h"
+#include "SuperFuncDataList.h"
+#include "SuperTimer.h"
 
 namespace SuperProfiler
 {
-	class SuperFunctionData
+	class SuperIterator;
+	class SuperBitStream;
+
+	class SuperNetServer : public SuperNetHost, public SuperRootListener
 	{
 	public:
-		SuperFunctionData(size_t setID, const char * setFuncName);
-		~SuperFunctionData();
+		SuperNetServer(size_t setPort);
+		~SuperNetServer();
 
-		size_t GetID(void) const;
-		const char * GetName(void) const;
 		/**
-		* The name is stored as a pointer for quick comparisons, the name pointer may be deleted at some point however
-		* Use the copy if you are interested in the actual text name and not the pointer address
+		* Returns the number of clients currently connected to this server
 		**/
-		const std::string & GetNameCopy(void) const;
-
-		void SetTotalTime(double setTime);
-		void AddToTotalTime(double addTime);
-		double GetTotalTime(void) const;
-
-		void SetTotalNumTimesCalled(size_t setTimes);
-		/**
-		* Notify this function data that the function was called.
-		**/
-		void FunctionCalled(void);
-		size_t GetTotalNumTimesCalled(void) const;
+		size_t GetNumClients(void) const;
 
 	private:
 		//No default construction!
-		SuperFunctionData();
-		//No copies!
-		SuperFunctionData(const SuperFunctionData &);
-		const SuperFunctionData & operator=(const SuperFunctionData &);
+		SuperNetServer();
 
-		size_t ID;
-		const char * funcName;
+		bool ConnectedToPeer(SuperNetPeer & connectedToPeer);
+		void DisconnectedFromPeer(SuperNetPeer & disconnectedFromPeer);
+		bool PeerConnected(SuperNetPeer & connectedPeer);
+		void PeerDisconnected(SuperNetPeer & disconnectedPeer);
+
+		void ReceivePacket(SuperBitStream & bitStream, SuperNetPeer & fromPeer);
+
 		/**
-		* A copy is needed in case funcName gets deleted
+		* Send this peer an initial sync of the profiler data
 		**/
-		std::string funcNameCopy;
-		double totalTime;
-		size_t totalNumTimesCalled;
+		void SendInitialSync(SuperNetPeer & sendToPeer);
+		void PackageFunctions(const SuperFuncDataList & funcList, SuperBitStream & bitStream, bool withNames);
+		void PackageNode(SuperIterator & iter, SuperBitStream & bitStream);
+
+		/**
+		* Every updateTime seconds, the clients will be updated with the function list data
+		**/
+		void SendFuncListUpdate(void);
+
+		/**
+		* Every updateTime seconds, the clients will be updated with the call tree data
+		**/
+		void SendCallTreeUpdate(void);
+
+		void ProcessImp(void);
+
+		/**
+		* SuperRootListener functions
+		**/
+		void FunctionAdded(size_t funcID, const std::string & funcName);
+
+		size_t numClients;
+
+		SuperTimer updateTimer;
+		double updateTime;
 	};
 }
 

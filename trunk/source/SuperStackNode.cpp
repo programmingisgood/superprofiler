@@ -28,6 +28,9 @@ namespace SuperProfiler
 {
 	SuperStackNode::SuperStackNode(SuperStackNode * setParent, SuperFunctionData * setFuncData) : parent(setParent), funcData(setFuncData),
 																								  startTime(0), endTime(0), totalTime(0),
+																								  lastMeasureTime(0), currentMeasureTime(0),
+																								  currentHighestTimeWhileMeasuring(0),
+																								  lastHighestTimeWhileMeasuring(0),
 																								  currentAvgBufferPos(0),
 																								  numTimesCalled(0)
 	{
@@ -47,6 +50,10 @@ namespace SuperProfiler
 		startTime = 0;
 		endTime = 0;
 		totalTime = 0;
+		currentMeasureTime = 0;
+		lastMeasureTime = 0;
+		currentHighestTimeWhileMeasuring = 0;
+		lastHighestTimeWhileMeasuring = 0;
 		numTimesCalled = 0;
 		avgBuffer.clear();
 
@@ -59,6 +66,12 @@ namespace SuperProfiler
 		children.clear();
 
 		parent = NULL;
+	}
+
+
+	void SuperStackNode::SetFuncData(SuperFunctionData * setFuncData)
+	{
+		funcData = setFuncData;
 	}
 
 
@@ -138,12 +151,24 @@ namespace SuperProfiler
 
 		AddToTotalTime(timeDiff);
 		AddAvgSample(timeDiff);
+		currentMeasureTime += timeDiff;
+
+		if (timeDiff > currentHighestTimeWhileMeasuring)
+		{
+			currentHighestTimeWhileMeasuring = timeDiff;
+		}
 	}
 
 
 	double SuperStackNode::GetEndTime(void) const
 	{
 		return endTime;
+	}
+
+
+	void SuperStackNode::SetTotalTime(double setTime)
+	{
+		totalTime = setTime;
 	}
 
 
@@ -163,6 +188,34 @@ namespace SuperProfiler
 		}
 
 		return avgTime / numAvgTimes;
+	}
+
+
+	void SuperStackNode::ResetMeasure(void)
+	{
+		lastMeasureTime = currentMeasureTime;
+		currentMeasureTime = 0;
+
+		lastHighestTimeWhileMeasuring = currentHighestTimeWhileMeasuring;
+		currentHighestTimeWhileMeasuring = 0;
+
+		NodeList::iterator iter;
+		for (iter = children.begin(); iter != children.end(); iter++)
+		{
+			(*iter)->ResetMeasure();
+		}
+	}
+
+
+	double SuperStackNode::GetLastMeasureTime(void) const
+	{
+		return lastMeasureTime;
+	}
+
+
+	double SuperStackNode::GetLastHighestTimeWhileMeasuring(void) const
+	{
+		return lastHighestTimeWhileMeasuring;
 	}
 
 
@@ -189,6 +242,12 @@ namespace SuperProfiler
 		}
 
 		currentAvgBufferPos++;
+	}
+
+
+	void SuperStackNode::SetNumTimesCalled(size_t setNumTimes)
+	{
+		numTimesCalled = setNumTimes;
 	}
 
 

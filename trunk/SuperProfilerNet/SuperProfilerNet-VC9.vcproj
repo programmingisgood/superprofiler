@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
-	Name="SuperProfiler"
-	ProjectGUID="{FD27FDBF-6DD2-401D-A249-970ED600F38C}"
-	RootNamespace="SuperProfiler"
+	Version="9.00"
+	Name="SuperProfilerNet"
+	ProjectGUID="{CB0066A5-339C-42A5-AA6E-9E3EF3E70750}"
+	RootNamespace="SuperProfilerNet"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -40,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="./include"
+				AdditionalIncludeDirectories="..\..\ENet\enet-1.2\include;..\include;.\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,6 +62,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="enet-1.2.lib SuperProfiler.lib"
+				AdditionalLibraryDirectories="..\..\ENet\enet-1.2\Debug;..\lib\Debug\"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -103,7 +106,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="./include"
+				AdditionalIncludeDirectories="..\..\ENet\enet-1.2\include;..\include;.\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -122,6 +125,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="enet-1.2.lib SuperProfiler.lib"
+				AdditionalLibraryDirectories="..\..\ENet\enet-1.2\Release;..\lib\Release\"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -149,59 +154,31 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\source\SuperFuncDataList.cpp"
+				RelativePath=".\source\SuperBitStream.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\SuperFunctionData.cpp"
+				RelativePath=".\source\SuperNetClient.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\SuperIterator.cpp"
+				RelativePath=".\source\SuperNetHost.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\SuperOutput.cpp"
+				RelativePath=".\source\SuperNetIniter.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\SuperOutputCSV.cpp"
+				RelativePath=".\source\SuperNetIterator.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\SuperOutputTest.cpp"
+				RelativePath=".\source\SuperNetPeer.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\SuperOutputText.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\SuperOutputXML.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\SuperProfile.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\SuperRoot.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\SuperStack.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\SuperStackNode.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\SuperTimer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\SuperUtils.cpp"
+				RelativePath=".\source\SuperNetServer.cpp"
 				>
 			</File>
 		</Filter>
@@ -211,71 +188,43 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\include\SuperException.h"
+				RelativePath=".\include\SuperBitStream.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperFuncDataList.h"
+				RelativePath=".\include\SuperNetClient.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperFunctionData.h"
+				RelativePath=".\include\SuperNetClientListener.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperIterator.h"
+				RelativePath=".\include\SuperNetHost.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperOutput.h"
+				RelativePath=".\include\SuperNetIniter.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperOutputCSV.h"
+				RelativePath=".\include\SuperNetIterator.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperOutputTest.h"
+				RelativePath=".\include\SuperNetPacketIDs.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperOutputText.h"
+				RelativePath=".\include\SuperNetPeer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperOutputXML.h"
+				RelativePath=".\include\SuperNetServer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\SuperProfile.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\SuperProfiler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\SuperRoot.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\SuperRootListener.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\SuperStack.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\SuperStackNode.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\SuperTimer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\SuperUtils.h"
+				RelativePath=".\include\SuperProfilerNet.h"
 				>
 			</File>
 		</Filter>

@@ -27,14 +27,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SuperTimer.h"
 #include "SuperStack.h"
 #include "SuperFuncDataList.h"
+#include "SuperIterator.h"
+#include <list>
 
 namespace SuperProfiler
 {
+	class SuperRootListener;
 	class SuperOutput;
 
 	class SuperRoot
 	{
 	public:
+		static void AddListener(SuperRootListener * addListener);
+		static bool FindListener(SuperRootListener * findListener);
+		static void RemoveListener(SuperRootListener * removeListener);
+
 		static void Reset(void);
 
 		static void PushProfile(const char * name);
@@ -45,7 +52,18 @@ namespace SuperProfiler
 		**/
 		static void PopProfile(const char * name);
 
-		static bool OutputResults(SuperOutput & output);
+		static const SuperFuncDataList & GetFuncList(void);
+		/**
+		* The returned SuperIterator can be used to view the SuperProfiler results in real time.
+		**/
+		static SuperIterator GetIterator(void);
+
+		static void OutputResults(SuperOutput & output);
+
+		/**
+		* Reset the measurement tracking inside the SuperStackNodes if you are using it
+		**/
+		static void ResetMeasure(void);
 
 	private:
 		//No default construction!
@@ -60,10 +78,14 @@ namespace SuperProfiler
 		static SuperFunctionData * FindFuncData(const char * name);
 		static void AddNewFuncData(SuperFunctionData * newFuncData);
 
+		typedef std::list<SuperRootListener *> ListenerList;
+		static ListenerList listeners;
 		static SuperTimer superTimer;
 		static SuperStack superStack;
+		static size_t nextFuncID;
 		static SuperFuncDataListWrapper superFuncDataListWrapper;
 		static bool recording;
+		static bool allowThrow;
 	};
 }
 

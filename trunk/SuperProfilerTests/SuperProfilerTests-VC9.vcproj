@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="SuperProfilerTests"
 	ProjectGUID="{EB0F0F1A-4852-4637-8175-9F16F2C14E66}"
 	RootNamespace="SuperProfilerTests"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -61,11 +62,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="UnitTest++.vsnet2005.lib SuperProfiler.lib SuperProfilerNet.lib"
+				AdditionalDependencies="UnitTest++.vsnet2008.lib SuperProfiler.lib SuperProfilerNet.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\UnitTest++\UnitTest++\debug\;..\lib\Debug\"
 				GenerateDebugInformation="true"
 				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -85,9 +88,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -139,13 +139,15 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="UnitTest++.vsnet2005.lib SuperProfiler.lib SuperProfilerNet.lib"
+				AdditionalDependencies="UnitTest++.vsnet2008.lib SuperProfiler.lib SuperProfilerNet.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;..\..\UnitTest++\UnitTest++\release\&quot;;..\lib\Release\"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -165,9 +167,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

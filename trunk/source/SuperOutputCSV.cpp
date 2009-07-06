@@ -57,7 +57,8 @@ namespace SuperProfiler
 			//This makes it so there won't be any unneeded end lines at the end of the file
 			outputFile << std::endl;
 
-			std::string funcName = (*iter)->GetName();
+			//The copy is needed in case the actual string has been deleted
+			std::string funcName = (*iter)->GetNameCopy();
 			//Replace any commas in the name with semi-colons
 			funcName = SuperUtils::FindAndReplace(funcName, ",", ";");
 

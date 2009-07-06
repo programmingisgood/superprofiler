@@ -72,7 +72,8 @@ namespace SuperProfiler
 			//Two tabs since we are one level down from the FunctionList tag
 			OutputTabs(2, outputFile);
 
-			std::string funcName = (*iter)->GetName();
+			//The copy is needed in case the actual string has been deleted
+			std::string funcName = (*iter)->GetNameCopy();
 			funcName = ReplaceXMLSpecialCharacters(funcName);
 
 			outputFile << "<Function ";
@@ -118,7 +119,8 @@ namespace SuperProfiler
 		}
 		else
 		{
-			std::string funcName = outputNode->GetFuncData()->GetName();
+			//The copy is needed in case the actual string has been deleted
+			std::string funcName = outputNode->GetFuncData()->GetNameCopy();
 			funcName = ReplaceXMLSpecialCharacters(funcName);
 
 			outputFile << "<Function ";

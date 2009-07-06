@@ -78,12 +78,12 @@ namespace SuperProfiler
 	}
 
 
-	void SuperStack::Pop(SuperFunctionData * setFuncData, double endTime)
+	void SuperStack::Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow)
 	{
 		if (currentChild)
 		{
 			//Make sure the correct function is being popped
-			if (currentChild->GetFuncData() != setFuncData)
+			if (allowThrow && currentChild->GetFuncData() != setFuncData)
 			{
 				if (setFuncData->GetName() && currentChild->GetFuncData()->GetName())
 				{
@@ -109,5 +109,14 @@ namespace SuperProfiler
 	size_t SuperStack::GetCurrentDepth(void) const
 	{
 		return currentDepth;
+	}
+
+
+	void SuperStack::Reset(void)
+	{
+		SuperStackNode::Reset();
+
+		currentDepth = 0;
+		currentChild = NULL;
 	}
 }

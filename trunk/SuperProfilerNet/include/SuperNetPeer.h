@@ -21,33 +21,38 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
+#ifndef SUPERNETPEER_H
+#define SUPERNETPEER_H
 
-#include "SuperStackNode.h"
+#include <string>
+
+struct _ENetPeer;
+typedef _ENetPeer ENetPeer;
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	class SuperNetPeer
 	{
 	public:
-		SuperStack();
-		~SuperStack();
+		SuperNetPeer();
+		/**
+		* Must support copying
+		**/
+		SuperNetPeer(const SuperNetPeer & rhs);
+		const SuperNetPeer & operator=(const SuperNetPeer & rhs);
 
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
+		bool operator==(const SuperNetPeer & rhs) const;
+		bool operator!=(const SuperNetPeer & rhs) const;
 
-		size_t GetCurrentDepth(void) const;
-
-		void Reset(void);
+		ENetPeer * GetPeer(void);
+		const std::string & GetAddress(void);
 
 	private:
-		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
+		friend class SuperNetHost;
+		SuperNetPeer(ENetPeer * setPeer, const std::string & setAddress);
 
-		size_t currentDepth;
-		SuperStackNode * currentChild;
+		std::string address;
+		ENetPeer * peer;
 	};
 }
 

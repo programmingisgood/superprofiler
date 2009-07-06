@@ -1,15 +1,14 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C++ Express 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperProfiler", "SuperProfiler.vcproj", "{FD27FDBF-6DD2-401D-A249-970ED600F38C}"
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperProfiler", "SuperProfiler-VC9.vcproj", "{FD27FDBF-6DD2-401D-A249-970ED600F38C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperProfilerTests", "SuperProfilerTests\SuperProfilerTests.vcproj", "{EB0F0F1A-4852-4637-8175-9F16F2C14E66}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperProfilerTests", "SuperProfilerTests\SuperProfilerTests-VC9.vcproj", "{EB0F0F1A-4852-4637-8175-9F16F2C14E66}"
 	ProjectSection(ProjectDependencies) = postProject
 		{CB0066A5-339C-42A5-AA6E-9E3EF3E70750} = {CB0066A5-339C-42A5-AA6E-9E3EF3E70750}
 		{FD27FDBF-6DD2-401D-A249-970ED600F38C} = {FD27FDBF-6DD2-401D-A249-970ED600F38C}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperProfilerNet", "SuperProfilerNet\SuperProfilerNet.vcproj", "{CB0066A5-339C-42A5-AA6E-9E3EF3E70750}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuperProfilerNet", "SuperProfilerNet\SuperProfilerNet-VC9.vcproj", "{CB0066A5-339C-42A5-AA6E-9E3EF3E70750}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FD27FDBF-6DD2-401D-A249-970ED600F38C} = {FD27FDBF-6DD2-401D-A249-970ED600F38C}
 	EndProjectSection

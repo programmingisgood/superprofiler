@@ -21,32 +21,63 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
-
-#include "SuperStackNode.h"
+#ifndef SUPERITERATOR_H
+#define SUPERITERATOR_H
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	class SuperStackNode;
+	/**
+	* SuperIterator is used to navigate through the call tree.
+	**/
+	class SuperIterator
 	{
 	public:
-		SuperStack();
-		~SuperStack();
+		SuperIterator();
+		SuperIterator(SuperStackNode * start);
+		~SuperIterator();
 
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
+		/**
+		* Must support copying
+		**/
+		SuperIterator(const SuperIterator & rhs);
+		const SuperIterator & operator=(const SuperIterator & rhs);
 
-		size_t GetCurrentDepth(void) const;
+		/**
+		* Access all the children of the current parent
+		**/
+		void SetFirst(void);
+		void SetNext(void);
+		void SetCurrentChild(size_t index);
+		bool IsEnd(void) const;
+		bool IsRoot(void) const;
 
-		void Reset(void);
+		size_t GetNumChildren(void) const;
+		void EnterChild(size_t index);
+		void EnterParent(void);
 
-	private:
-		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
+		/**
+		* Access the current child
+		**/
+		size_t GetCurrentID(void) const;
+		const char * GetCurrentName(void) const;
+		size_t GetCurrentTotalCalls(void) const;
+		double GetCurrentTotalTime(void) const;
+		double GetCurrentMeasureTime(void) const;
+		double GetCurrentLastHighestTimeWhileMeasuring(void) const;
 
-		size_t currentDepth;
+		/**
+		* Access the current parent
+		**/
+		size_t GetCurrentParentID(void) const;
+		const char * GetCurrentParentName(void) const;
+		size_t GetCurrentParentTotalCalls(void) const;
+		double GetCurrentParentTotalTime(void) const;
+		double GetCurrentParentMeasureTime(void) const;
+		double GetCurrentParentLastHighestTimeWhileMeasuring(void) const;
+
+	protected:
+		SuperStackNode * currentParent;
 		SuperStackNode * currentChild;
 	};
 }

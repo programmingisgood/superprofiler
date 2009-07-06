@@ -35,10 +35,14 @@ namespace SuperProfiler
 	{
 	public:
 		SuperStackNode(SuperStackNode * setParent, SuperFunctionData * setFuncData);
-		~SuperStackNode();
+		virtual ~SuperStackNode();
 
-		void Reset(void);
+		/**
+		* Reset will reset this node and delete any children it has
+		**/
+		virtual void Reset(void);
 
+		void SetFuncData(SuperFunctionData * setFuncData);
 		SuperFunctionData * GetFuncData(void) const;
 
 		SuperStackNode * GetParent(void);
@@ -48,24 +52,37 @@ namespace SuperProfiler
 		SuperStackNode * GetChild(size_t atIndex);
 		SuperStackNode * GetChild(SuperFunctionData * childFunc);
 
+		void AddChild(SuperStackNode * addChild);
+		/**
+		* RemoveChild does not delete removeChild
+		**/
+		void RemoveChild(SuperStackNode * removeChild);
+
 		void SetStartTime(double setStartTime);
 		double GetStartTime(void) const;
 
 		void SetEndTime(double setEndTime);
 		double GetEndTime(void) const;
 
+		void SetTotalTime(double setTime);
 		double GetTotalTime(void) const;
 		double GetAverageTime(void) const;
 
-		size_t GetNumTimesCalled(void) const;
-
-	protected:
-		friend class SuperStack;
-		void AddChild(SuperStackNode * addChild);
+		void ResetMeasure(void);
 		/**
-		* RemoveChild does not delete removeChild.
+		* Returns the amount of time spent in this node
+		* the last time it was measured
 		**/
-		void RemoveChild(SuperStackNode * removeChild);
+		double GetLastMeasureTime(void) const;
+
+		/**
+		* Returns the highest amount of time spent in this node
+		* during the last measure time period
+		**/
+		double GetLastHighestTimeWhileMeasuring(void) const;
+
+		void SetNumTimesCalled(size_t setNumTimes);
+		size_t GetNumTimesCalled(void) const;
 
 	private:
 		//No default construction!
@@ -84,6 +101,10 @@ namespace SuperProfiler
 		double startTime;
 		double endTime;
 		double totalTime;
+		double currentMeasureTime;
+		double lastMeasureTime;
+		double currentHighestTimeWhileMeasuring;
+		double lastHighestTimeWhileMeasuring;
 		static const size_t AvgBufferSize = 100;
 		size_t currentAvgBufferPos;
 		typedef std::vector<double> AvgBuffer;
