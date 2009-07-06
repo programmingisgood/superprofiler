@@ -56,7 +56,8 @@ namespace SuperProfiler
 		SuperFuncDataList::iterator iter;
 		for (iter = funcData.begin(); iter != funcData.end(); iter++)
 		{
-			outputFile << (*iter)->GetName() << " | ";
+			//The copy is needed in case the actual string has been deleted
+			outputFile << (*iter)->GetNameCopy() << " | ";
 			outputFile << "Total Time=" << (*iter)->GetTotalTime() << " | ";
 			outputFile << ((*iter)->GetTotalTime() / totalRunTime) * 100 << "% of time | ";
 			outputFile << "Total Calls=" << (*iter)->GetTotalNumTimesCalled() << " | ";
@@ -90,7 +91,8 @@ namespace SuperProfiler
 				//4 spaces per depth
 				outputFile << "    ";
 			}
-			outputFile << outputNode->GetFuncData()->GetName() << " | ";
+			//The copy is needed in case the actual string has been deleted
+			outputFile << outputNode->GetFuncData()->GetNameCopy() << " | ";
 			outputFile << "Total Time=" << outputNode->GetTotalTime() << " | ";
 			outputFile << "Avg Time=" << outputNode->GetAverageTime() << " | ";
 			outputFile << "Times called=" << outputNode->GetNumTimesCalled() << std::endl;

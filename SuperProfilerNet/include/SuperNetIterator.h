@@ -21,33 +21,59 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
+#ifndef SUPERNETITERATOR_H
+#define SUPERNETITERATOR_H
 
-#include "SuperStackNode.h"
+#include "SuperIterator.h"
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	class SuperStackNode;
+
+	class SuperNetIterator
 	{
 	public:
-		SuperStack();
-		~SuperStack();
+		SuperNetIterator();
+		/**
+		* Must support copying
+		**/
+		SuperNetIterator(const SuperNetIterator & rhs);
+		const SuperNetIterator & operator=(const SuperNetIterator & rhs);
 
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
+		/**
+		* Access all the children of the current parent
+		**/
+		void SetFirst(void);
+		void SetNext(void);
+		void SetCurrentChild(size_t index);
+		bool IsEnd(void) const;
+		bool IsRoot(void) const;
 
-		size_t GetCurrentDepth(void) const;
+		size_t GetNumChildren(void) const;
+		void EnterChild(size_t index);
+		void EnterParent(void);
 
-		void Reset(void);
+		/**
+		* Access the current child
+		**/
+		size_t GetCurrentID(void) const;
+		const char * GetCurrentName(void) const;
+		size_t GetCurrentTotalCalls(void) const;
+		double GetCurrentTotalTime(void) const;
+
+		/**
+		* Access the current parent
+		**/
+		size_t GetCurrentParentID(void) const;
+		const char * GetCurrentParentName(void) const;
+		size_t GetCurrentParentTotalCalls(void) const;
+		double GetCurrentParentTotalTime(void) const;
 
 	private:
-		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
+		friend class SuperNetClient;
+		SuperNetIterator(SuperStackNode * start);
 
-		size_t currentDepth;
-		SuperStackNode * currentChild;
+		SuperIterator realIter;
 	};
 }
 

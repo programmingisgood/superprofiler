@@ -21,34 +21,60 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
-
-#include "SuperStackNode.h"
+#include "SuperNetPeer.h"
+#include "enet/enet.h"
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	SuperNetPeer::SuperNetPeer() : peer(NULL)
 	{
-	public:
-		SuperStack();
-		~SuperStack();
+	}
 
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
 
-		size_t GetCurrentDepth(void) const;
+	SuperNetPeer::SuperNetPeer(ENetPeer * setPeer, const std::string & setAddress) :
+									   peer(setPeer), address(setAddress)
+	{
+	}
 
-		void Reset(void);
 
-	private:
-		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
+	SuperNetPeer::SuperNetPeer(const SuperNetPeer & rhs) : 
+									   peer(rhs.peer), address(rhs.address)
+	{
+	}
 
-		size_t currentDepth;
-		SuperStackNode * currentChild;
-	};
+
+	const SuperNetPeer & SuperNetPeer::operator=(const SuperNetPeer & rhs)
+	{
+		peer = rhs.peer;
+		address = rhs.address;
+		return *this;
+	}
+
+
+	ENetPeer * SuperNetPeer::GetPeer(void)
+	{
+		return peer;
+	}
+
+
+	const std::string & SuperNetPeer::GetAddress(void)
+	{
+		return address;
+	}
+
+
+	bool SuperNetPeer::operator==(const SuperNetPeer & rhs) const
+	{
+		if (this->peer == rhs.peer)
+		{
+			return true;
+		}
+		return false;
+	}
+
+
+	bool SuperNetPeer::operator!=(const SuperNetPeer & rhs) const
+	{
+		return !(*this == rhs);
+	}
 }
-
-#endif

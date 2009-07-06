@@ -21,33 +21,28 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
-
-#include "SuperStackNode.h"
+#ifndef SUPERNETINITER_H
+#define SUPERNETINITER_H
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	/**
+	* Instantiate one object of this SuperNetIniter RAII class to ensure the network is managed correctly.
+	**/
+	class SuperNetIniter
 	{
 	public:
-		SuperStack();
-		~SuperStack();
+		SuperNetIniter();
+		~SuperNetIniter();
 
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
-
-		size_t GetCurrentDepth(void) const;
-
-		void Reset(void);
+		static bool IsInited(void);
 
 	private:
 		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
+		SuperNetIniter(const SuperNetIniter &);
+		const SuperNetIniter & operator=(const SuperNetIniter &);
 
-		size_t currentDepth;
-		SuperStackNode * currentChild;
+		static bool isInited;
 	};
 }
 

@@ -22,18 +22,65 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
 #include "SuperRoot.h"
+#include "SuperRootListener.h"
 #include "SuperOutput.h"
 #include "SuperFunctionData.h"
 #include "SuperException.h"
 
+SuperProfiler::SuperRoot::ListenerList SuperProfiler::SuperRoot::listeners;
 SuperProfiler::SuperTimer SuperProfiler::SuperRoot::superTimer;
 SuperProfiler::SuperStack SuperProfiler::SuperRoot::superStack;
+size_t SuperProfiler::SuperRoot::nextFuncID = 0;
 SuperProfiler::SuperFuncDataListWrapper SuperProfiler::SuperRoot::superFuncDataListWrapper;
 //Ready to record right away
 bool SuperProfiler::SuperRoot::recording = true;
+bool SuperProfiler::SuperRoot::allowThrow = true;
 
 namespace SuperProfiler
 {
+	void SuperRoot::AddListener(SuperRootListener * addListener)
+	{
+		if (addListener == NULL)
+		{
+			return;
+		}
+		if (FindListener(addListener))
+		{
+			return;
+		}
+
+		listeners.push_back(addListener);
+	}
+
+
+	bool SuperRoot::FindListener(SuperRootListener * findListener)
+	{
+		ListenerList::iterator iter;
+		for (iter = listeners.begin(); iter != listeners.end(); iter++)
+		{
+			if ((*iter) == findListener)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	void SuperRoot::RemoveListener(SuperRootListener * removeListener)
+	{
+		ListenerList::iterator iter;
+		for (iter = listeners.begin(); iter != listeners.end(); iter++)
+		{
+			if ((*iter) == removeListener)
+			{
+				listeners.erase(iter);
+				break;
+			}
+		}
+	}
+
+
 	void SuperRoot::Reset(void)
 	{
 		superTimer.Reset();
@@ -41,14 +88,15 @@ namespace SuperProfiler
 		superFuncDataListWrapper.Reset();
 		//Ready to record
 		recording = true;
+		allowThrow = true;
 	}
 
 
-	bool SuperRoot::OutputResults(SuperOutput & output)
+	void SuperRoot::OutputResults(SuperOutput & output)
 	{
 		if (superStack.GetCurrentDepth() != 0)
 		{
-			return false;
+			throw SUPER_EXCEPTION("The call tree stack was not at the depth 0 while in SuperRoot::OutputResults()");
 		}
 
 		//Done recording once the results need to be outputted
@@ -64,8 +112,12 @@ namespace SuperProfiler
 		}
 		output.OutputFunctionData(superFuncDataListWrapper.superFuncDataList, totalRunTime);
 		output.OutputCallTree(&superStack);
+	}
 
-		return true;
+
+	void SuperRoot::ResetMeasure(void)
+	{
+		superStack.ResetMeasure();
 	}
 
 
@@ -76,7 +128,12 @@ namespace SuperProfiler
 			SuperFunctionData * foundFunc = FindFuncData(name);
 			if (!foundFunc)
 			{
-				foundFunc = new SuperFunctionData(name);
+				nextFuncID++;
+				if (nextFuncID == 0)
+				{
+					throw SUPER_EXCEPTION("Ran out of function IDs in SuperRoot::PushProfile()");
+				}
+				foundFunc = new SuperFunctionData(nextFuncID, name);
 				AddNewFuncData(foundFunc);
 			}
 			superStack.Push(foundFunc, superTimer.GetTimeSeconds());
@@ -93,8 +150,28 @@ namespace SuperProfiler
 			{
 				throw SUPER_EXCEPTION(std::string("Function named ") + name + " not found in SuperRoot::PopProfile()");
 			}
-			superStack.Pop(foundFunc, superTimer.GetTimeSeconds());
+			try
+			{
+				superStack.Pop(foundFunc, superTimer.GetTimeSeconds(), allowThrow);
+			}
+			catch (...)
+			{
+				allowThrow = false;
+				throw;
+			}
 		}
+	}
+
+
+	const SuperFuncDataList & SuperRoot::GetFuncList(void)
+	{
+		return superFuncDataListWrapper.superFuncDataList;
+	}
+
+
+	SuperIterator SuperRoot::GetIterator(void)
+	{
+		return SuperIterator(&superStack);
 	}
 
 
@@ -121,5 +198,11 @@ namespace SuperProfiler
 		}
 
 		superFuncDataListWrapper.superFuncDataList.push_back(newFuncData);
+
+		ListenerList::iterator iter;
+		for (iter = listeners.begin(); iter != listeners.end(); iter++)
+		{
+			(*iter)->FunctionAdded(newFuncData->GetID(), newFuncData->GetName());
+		}
 	}
 }

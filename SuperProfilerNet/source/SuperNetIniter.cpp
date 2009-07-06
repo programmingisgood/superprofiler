@@ -21,34 +21,45 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
+#include "SuperNetIniter.h"
+#include "SuperException.h"
+#include "enet/enet.h"
 
-#include "SuperStackNode.h"
+bool SuperProfiler::SuperNetIniter::isInited = false;
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	SuperNetIniter::SuperNetIniter()
 	{
-	public:
-		SuperStack();
-		~SuperStack();
+		if (IsInited())
+		{
+			throw SUPER_EXCEPTION("Network is already initialized");
+		}
 
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
+		if (enet_initialize() != 0)
+		{
+			throw SUPER_EXCEPTION("Could not initialize the Network");
+		}
 
-		size_t GetCurrentDepth(void) const;
+		SuperNetIniter::isInited = true;
+	}
 
-		void Reset(void);
 
-	private:
-		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
+	SuperNetIniter::~SuperNetIniter()
+	{
+		if (!IsInited())
+		{
+			throw SUPER_EXCEPTION("Network has not been initialized yet");
+		}
 
-		size_t currentDepth;
-		SuperStackNode * currentChild;
-	};
+		enet_deinitialize();
+
+		SuperNetIniter::isInited = false;
+	}
+
+
+	bool SuperNetIniter::IsInited(void)
+	{
+		return isInited;
+	}
 }
-
-#endif

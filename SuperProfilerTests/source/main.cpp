@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SuperOutputText.h"
 #include "SuperOutputCSV.h"
 #include "SuperOutputXML.h"
+#include "SuperProfilerNet.h"
 #include <iostream>
 #include <fstream>
 
@@ -95,11 +96,12 @@ SUITE(SuperProfilerTests)
 
 	void PushAndPopProfileFunction(void)
 	{
-		SUPER_PROFILE_PUSH("PushAndPopProfileFunction()");
+		char * funcName = "PushAndPopProfileFunction()";
+		SUPER_PROFILE_PUSH(funcName);
 
 		UnitTest::TimeHelpers::SleepMs(10);
 
-		SUPER_PROFILE_POP("PushAndPopProfileFunction()");
+		SUPER_PROFILE_POP(funcName);
 	}
 
 
@@ -120,10 +122,10 @@ SUITE(SuperProfilerTests)
 		SuperProfiler::SuperStack testStack;
 
 		//First create some test functions
-		SuperProfiler::SuperFunctionData mainLoop("MainLoop()");
-		SuperProfiler::SuperFunctionData apple("Apple()");
-		SuperProfiler::SuperFunctionData orange("Orange()");
-		SuperProfiler::SuperFunctionData peach("Peach()");
+		SuperProfiler::SuperFunctionData mainLoop(1, "MainLoop()");
+		SuperProfiler::SuperFunctionData apple(2, "Apple()");
+		SuperProfiler::SuperFunctionData orange(3, "Orange()");
+		SuperProfiler::SuperFunctionData peach(4, "Peach()");
 
 		//Add some test data
 		testStack.Push(&mainLoop, testTimer.GetTimeSeconds());
@@ -315,7 +317,7 @@ SUITE(SuperProfilerTests)
 		//Create a default SuperOutputText object
 		SuperProfiler::SuperOutputText superOutputText("InvalidTXTResults.txt");
 		//This should fail since the above MAIN() profile is in the same scope as us
-		CHECK_EQUAL(false, SuperProfiler::SuperRoot::OutputResults(superOutputText));
+		CHECK_THROW(SuperProfiler::SuperRoot::OutputResults(superOutputText), SuperProfiler::SuperException);
 
 		//File should be empty
 		std::ifstream ifs("InvalidTXTResults.txt", std::ifstream::in);
@@ -339,7 +341,15 @@ SUITE(SuperProfilerTests)
 
 		//Create a default SuperOutputText object
 		SuperProfiler::SuperOutputText superOutputText("ValidTXTResults.txt");
-		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(superOutputText));
+		try
+		{
+			SuperProfiler::SuperRoot::OutputResults(superOutputText);
+		}
+		catch (SuperProfiler::SuperException &)
+		{
+			//No exception should be thrown from OutputResults here
+			CHECK(false);
+		}
 	}
 
 
@@ -356,7 +366,15 @@ SUITE(SuperProfilerTests)
 		}
 
 		SuperProfiler::SuperOutputCSV csvOutput("ValidCSVResults.csv");
-		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(csvOutput));
+		try
+		{
+			SuperProfiler::SuperRoot::OutputResults(csvOutput);
+		}
+		catch (SuperProfiler::SuperException &)
+		{
+			//No exception should be thrown from OutputResults here
+			CHECK(false);
+		}
 	}
 
 
@@ -389,8 +407,24 @@ SUITE(SuperProfilerTests)
 
 		SuperProfiler::SuperOutputText superOutputText("TwoOutputsTXTResults.txt");
 		SuperProfiler::SuperOutputCSV csvOutput("TwoOutputsCSVResults.csv");
-		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(superOutputText));
-		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(csvOutput));
+		try
+		{
+			SuperProfiler::SuperRoot::OutputResults(superOutputText);
+		}
+		catch (SuperProfiler::SuperException &)
+		{
+			//No exception should be thrown from OutputResults here
+			CHECK(false);
+		}
+		try
+		{
+			SuperProfiler::SuperRoot::OutputResults(csvOutput);
+		}
+		catch (SuperProfiler::SuperException &)
+		{
+			//No exception should be thrown from OutputResults here
+			CHECK(false);
+		}
 	}
 
 
@@ -409,9 +443,33 @@ SUITE(SuperProfilerTests)
 		SuperProfiler::SuperOutputText superOutputText("ThreeOutputsTXTResults.txt");
 		SuperProfiler::SuperOutputCSV csvOutput("ThreeOutputsCSVResults.csv");
 		SuperProfiler::SuperOutputXML xmlOutput("ThreeOutputsXMLResults.xml");
-		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(superOutputText));
-		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(csvOutput));
-		CHECK_EQUAL(true, SuperProfiler::SuperRoot::OutputResults(xmlOutput));
+		try
+		{
+			SuperProfiler::SuperRoot::OutputResults(superOutputText);
+		}
+		catch (SuperProfiler::SuperException &)
+		{
+			//No exception should be thrown from OutputResults here
+			CHECK(false);
+		}
+		try
+		{
+			SuperProfiler::SuperRoot::OutputResults(csvOutput);
+		}
+		catch (SuperProfiler::SuperException &)
+		{
+			//No exception should be thrown from OutputResults here
+			CHECK(false);
+		}
+		try
+		{
+			SuperProfiler::SuperRoot::OutputResults(xmlOutput);
+		}
+		catch (SuperProfiler::SuperException &)
+		{
+			//No exception should be thrown from OutputResults here
+			CHECK(false);
+		}
 	}
 
 
@@ -478,6 +536,313 @@ SUITE(SuperProfilerTests)
 		SuperProfiler::SuperRoot::Reset();
 
 		CHECK_THROW(InvalidPushAndPopProfileFunction(), SuperProfiler::SuperException);
+	}
+
+
+	TEST(RealTimeInfo)
+	{
+		SuperProfiler::SuperRoot::Reset();
+
+		TestFunctionCall4();
+
+		SuperProfiler::SuperIterator iter = SuperProfiler::SuperRoot::GetIterator();
+		CHECK(iter.IsRoot());
+		CHECK_EQUAL("TestFunctionCall4()", iter.GetCurrentName());
+		CHECK(iter.GetCurrentParentTotalTime() > 0);
+		CHECK(iter.GetCurrentParentTotalCalls() > 0);
+		CHECK_EQUAL(1, iter.GetNumChildren());
+		iter.EnterChild(0);
+		CHECK(!iter.IsRoot());
+		CHECK_EQUAL("TestFunctionCall3()", iter.GetCurrentName());
+		CHECK_EQUAL(2, iter.GetNumChildren());
+		iter.EnterParent();
+		CHECK(iter.IsRoot());
+		CHECK_EQUAL("TestFunctionCall4()", iter.GetCurrentName());
+		CHECK_EQUAL(1, iter.GetNumChildren());
+	}
+
+	TEST(RealTimeNetworkConnectionState)
+	{
+		SuperProfiler::SuperNetIniter initer;
+
+		SuperProfiler::SuperRoot::Reset();
+
+		SuperProfiler::SuperNetServer server(54321);
+		SuperProfiler::SuperNetClient client;
+
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTED, client.GetState());
+
+		CHECK(client.Connect("localhost:54321"));
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::CONNECTING, client.GetState());
+
+		SuperProfiler::SuperTimer timer;
+		double maxWaitTime = 1;
+		while (timer.GetTimeSeconds() <= maxWaitTime)
+		{
+			server.Process();
+			client.Process();
+			if (client.GetState() == SuperProfiler::SuperNetClient::CONNECTED &&
+				server.GetNumClients() > 0)
+			{
+				break;
+			}
+		}
+
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::CONNECTED, client.GetState());
+
+		CHECK_EQUAL(1, server.GetNumClients());
+
+		CHECK(!client.Connect("localhost:54321"));
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::CONNECTED, client.GetState());
+
+		client.Disconnect();
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTING, client.GetState());
+
+		timer.Reset();
+		while (timer.GetTimeSeconds() <= maxWaitTime)
+		{
+			server.Process();
+			client.Process();
+			if (client.GetState() == SuperProfiler::SuperNetClient::DISCONNECTED &&
+				server.GetNumClients() == 0)
+			{
+				break;
+			}
+		}
+
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTED, client.GetState());
+
+		CHECK_EQUAL(0, server.GetNumClients());
+
+		client.Disconnect();
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTED, client.GetState());
+	}
+
+
+	TEST(RealTimeNetworkConnectionStateNoServer)
+	{
+		SuperProfiler::SuperNetIniter initer;
+
+		SuperProfiler::SuperRoot::Reset();
+
+		SuperProfiler::SuperNetClient client;
+
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTED, client.GetState());
+
+		CHECK(client.Connect("localhost:54321"));
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::CONNECTING, client.GetState());
+
+		SuperProfiler::SuperTimer timer;
+		double maxWaitTime = 10;
+		//Make sure the client times out
+		while (true)//timer.GetTimeSeconds() <= maxWaitTime)
+		{
+			client.Process();
+			if (client.GetState() == SuperProfiler::SuperNetClient::DISCONNECTED)
+			{
+				break;
+			}
+		}
+
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTED, client.GetState());
+
+		//Attempt to connect again
+		CHECK(client.Connect("localhost:54321"));
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::CONNECTING, client.GetState());
+
+		client.Disconnect();
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTING, client.GetState());
+
+		timer.Reset();
+		//Make sure the client times out
+		while (timer.GetTimeSeconds() <= maxWaitTime)
+		{
+			client.Process();
+			if (client.GetState() == SuperProfiler::SuperNetClient::DISCONNECTED)
+			{
+				break;
+			}
+		}
+
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTED, client.GetState());
+
+		client.Disconnect();
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::DISCONNECTED, client.GetState());
+	}
+
+
+	TEST(RealTimeNetworkInfoSync)
+	{
+		SuperProfiler::SuperNetIniter initer;
+
+		SuperProfiler::SuperRoot::Reset();
+
+		//Make a call to populate the call tree
+		TestFunctionCall4();
+
+		SuperProfiler::SuperNetServer server(54321);
+		SuperProfiler::SuperNetClient client;
+		CHECK(client.Connect("localhost:54321"));
+
+		SuperProfiler::SuperTimer timer;
+		double maxWaitTime = 1;
+		while (timer.GetTimeSeconds() <= maxWaitTime)
+		{
+			server.Process();
+			client.Process();
+			if (client.GetState() == SuperProfiler::SuperNetClient::CONNECTED &&
+				server.GetNumClients() > 0)
+			{
+				break;
+			}
+		}
+
+		CHECK_EQUAL(SuperProfiler::SuperNetClient::CONNECTED, client.GetState());
+		CHECK_EQUAL(1, server.GetNumClients());
+
+		//Make sure the tree got synchronized initially during connection from the server to client
+		SuperProfiler::SuperNetIterator syncIter = client.GetIterator();
+		CHECK(syncIter.IsRoot());
+		CHECK_EQUAL("ROOT", syncIter.GetCurrentParentName());
+		//TestFunctionCall4 was called off the root
+		CHECK_EQUAL(1, syncIter.GetNumChildren());
+
+		//Just process the server and client for a while, making sure the tree looks right
+		for (size_t i = 0; i < 100; i++)
+		{
+			TestFunctionCall4();
+
+			server.Process();
+			client.Process();
+
+			SuperProfiler::SuperNetIterator iter = client.GetIterator();
+			CHECK(iter.IsRoot());
+			CHECK_EQUAL("ROOT", iter.GetCurrentParentName());
+			CHECK_EQUAL(1, iter.GetNumChildren());
+			CHECK_EQUAL("TestFunctionCall4()", iter.GetCurrentName());
+			iter.EnterChild(0);
+			CHECK_EQUAL(2, iter.GetNumChildren());
+			CHECK(!iter.IsRoot());
+			CHECK_EQUAL("TestFunctionCall3()", iter.GetCurrentName());
+			iter.EnterChild(0);
+			CHECK_EQUAL(1, iter.GetNumChildren());
+		}
+	}
+
+
+	TEST(SuperBitStreamSimpleTests)
+	{
+		SuperProfiler::SuperBitStream bitStream;
+
+		size_t dataSize = 0;
+		std::string strData("12345");
+		dataSize += strData.length() + 1;
+		int intData = 12345;
+		dataSize += sizeof(int);
+		float floatData = 12.345f;
+		dataSize += sizeof(float);
+		short shortData = 321;
+		dataSize += sizeof(short);
+		char charData = 6;
+		dataSize += sizeof(char);
+		bool boolData = true;
+		dataSize += sizeof(bool);
+
+		bitStream.Serialize(true, strData);
+		bitStream.Serialize(true, intData);
+		bitStream.Serialize(true, floatData);
+		bitStream.Serialize(true, shortData);
+		bitStream.Serialize(true, charData);
+		bitStream.Serialize(true, boolData);
+
+		CHECK_EQUAL(dataSize, bitStream.GetDataSize());
+		CHECK(bitStream.GetData() != NULL);
+
+		//Make sure that a read at this point will throw an exception
+		bool readExcepTest = true;
+		CHECK_THROW(bitStream.Serialize(false, readExcepTest), SuperProfiler::SuperException);
+
+		//Rewind the stream so we can read from it
+		bitStream.Rewind();
+
+		std::string readStrData;
+		int readIntData = 0;
+		float readFloatData = 0;
+		short readShortData = 0;
+		char readCharData = 0;
+		bool readBoolData = false;
+
+		bitStream.Serialize(false, readStrData);
+		bitStream.Serialize(false, readIntData);
+		bitStream.Serialize(false, readFloatData);
+		bitStream.Serialize(false, readShortData);
+		bitStream.Serialize(false, readCharData);
+		bitStream.Serialize(false, readBoolData);
+
+		CHECK_EQUAL(strData, readStrData);
+		CHECK_EQUAL(intData, readIntData);
+		CHECK_CLOSE(floatData, readFloatData, 0.001f);
+		CHECK_EQUAL(shortData, readShortData);
+		CHECK_EQUAL(charData, readCharData);
+		CHECK_EQUAL(boolData, readBoolData);
+
+		//Start over and try again with a different set of data
+		bitStream.Clear();
+
+		CHECK_EQUAL(0, bitStream.GetDataSize());
+		CHECK(bitStream.GetData() == NULL);
+
+		size_t dataSize2 = 0;
+		std::string strData2("abcdefghijklmnopqrstuvwxyz");
+		dataSize2 += strData2.length() + 1;
+		int intData2 = 48151623;
+		dataSize2 += sizeof(int);
+		float floatData2 = 4815.1623f;
+		dataSize2 += sizeof(float);
+		short shortData2 = 2432;
+		dataSize2 += sizeof(short);
+		char charData2 = 4;
+		dataSize2 += sizeof(char);
+		bool boolData2 = false;
+		dataSize2 += sizeof(bool);
+
+		bitStream.Serialize(true, strData2);
+		bitStream.Serialize(true, intData2);
+		bitStream.Serialize(true, floatData2);
+		bitStream.Serialize(true, shortData2);
+		bitStream.Serialize(true, charData2);
+		bitStream.Serialize(true, boolData2);
+
+		CHECK_EQUAL(dataSize2, bitStream.GetDataSize());
+		CHECK(bitStream.GetData() != NULL);
+
+		//Make sure that a read at this point will throw an exception
+		readExcepTest = true;
+		CHECK_THROW(bitStream.Serialize(false, readExcepTest), SuperProfiler::SuperException);
+
+		//Rewind the stream so we can read from it
+		bitStream.Rewind();
+
+		std::string readStrData2;
+		int readIntData2 = 0;
+		float readFloatData2 = 0;
+		short readShortData2 = 0;
+		char readCharData2 = 0;
+		bool readBoolData2 = false;
+
+		bitStream.Serialize(false, readStrData2);
+		bitStream.Serialize(false, readIntData2);
+		bitStream.Serialize(false, readFloatData2);
+		bitStream.Serialize(false, readShortData2);
+		bitStream.Serialize(false, readCharData2);
+		bitStream.Serialize(false, readBoolData2);
+
+		CHECK_EQUAL(strData2, readStrData2);
+		CHECK_EQUAL(intData2, readIntData2);
+		CHECK_CLOSE(floatData2, readFloatData2, 0.001f);
+		CHECK_EQUAL(shortData2, readShortData2);
+		CHECK_EQUAL(charData2, readCharData2);
+		CHECK_EQUAL(boolData2, readBoolData2);
 	}
 }
 

@@ -26,17 +26,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdexcept>
 #include <string>
+#include <sstream>
 
-#define SUPER_EXCEPTION(WHAT) SuperException((WHAT), __FUNCTION__, __FILE__, __LINE__)
+#define SUPER_EXCEPTION(WHAT) SuperProfiler::SuperException((WHAT), __FUNCTION__, __FILE__, __LINE__)
 
 namespace SuperProfiler
 {
 	class SuperException : public std::exception
 	{
 	public:
-		SuperException(const std::string & whatArg, const char * whichFunc = NULL, const char * whichFile = NULL, unsigned long whatLine = 0) throw() :
+		SuperException(const std::string & whatArg, const char * whichFunc = NULL, const char * whichFile = NULL, unsigned long whatLine = 0) :
 					   whatStr(whatArg), func(whichFunc), file(whichFile), line(whatLine)
 		{
+			if (whichFunc && whichFile)
+			{
+				std::ostringstream lineStr;
+				lineStr << line;
+				whatStr += ", in function " + std::string(func) + " in file " + std::string(file) + " on line " + lineStr.str();
+			}
 		}
 
 		~SuperException() throw()

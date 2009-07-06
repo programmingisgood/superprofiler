@@ -21,33 +21,17 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
-
-#include "SuperStackNode.h"
+#ifndef SUPERNETPACKETIDS_H
+#define SUPERNETPACKETIDS_H
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	enum PacketIDs
 	{
-	public:
-		SuperStack();
-		~SuperStack();
-
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
-
-		size_t GetCurrentDepth(void) const;
-
-		void Reset(void);
-
-	private:
-		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
-
-		size_t currentDepth;
-		SuperStackNode * currentChild;
+		PID_INITIAL_SYNC,
+		PID_ADD_FUNCTION,
+		PID_FUNC_LIST_UPDATE,
+		PID_CALL_TREE_UPDATE
 	};
 }
 

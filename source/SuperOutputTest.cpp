@@ -47,8 +47,9 @@ namespace SuperProfiler
 		SuperFuncDataList::iterator iter;
 		for (iter = funcData.begin(); iter != funcData.end(); iter++)
 		{
-			funcTimeList[(*iter)->GetName()] = (*iter)->GetTotalTime();
-			funcCallAmountList[(*iter)->GetName()] = (*iter)->GetTotalNumTimesCalled();
+			//The copy is needed in case the actual string has been deleted
+			funcTimeList[(*iter)->GetNameCopy()] = (*iter)->GetTotalTime();
+			funcCallAmountList[(*iter)->GetNameCopy()] = (*iter)->GetTotalNumTimesCalled();
 		}
 	}
 
@@ -71,7 +72,8 @@ namespace SuperProfiler
 		for (size_t i = 0; i < numChildren; i++)
 		{
 			SuperStackNode * childNode = stack->GetChild(i);
-			SuperOutputTestCallNode * newNode = new SuperOutputTestCallNode(childNode->GetFuncData()->GetName());
+			//The copy is needed in case the actual string has been deleted
+			SuperOutputTestCallNode * newNode = new SuperOutputTestCallNode(childNode->GetFuncData()->GetNameCopy());
 			currNode.AddChild(newNode);
 			Record(childNode, *newNode);
 		}

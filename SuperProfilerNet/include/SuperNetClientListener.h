@@ -21,33 +21,22 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-#ifndef SUPERSTACK_H
-#define SUPERSTACK_H
+#ifndef SUPERNETCLIENTLISTENER_H
+#define SUPERNETCLIENTLISTENER_H
 
-#include "SuperStackNode.h"
+#include <string>
 
 namespace SuperProfiler
 {
-	class SuperStack : public SuperStackNode
+	class SuperNetClientListener
 	{
 	public:
-		SuperStack();
-		~SuperStack();
+		virtual ~SuperNetClientListener() = 0 { }
 
-		void Push(SuperFunctionData * setFuncData, double startTime);
-		void Pop(SuperFunctionData * setFuncData, double endTime, bool allowThrow = true);
-
-		size_t GetCurrentDepth(void) const;
-
-		void Reset(void);
-
-	private:
-		//No copies!
-		SuperStack(const SuperStack &);
-		const SuperStack & operator=(const SuperStack &);
-
-		size_t currentDepth;
-		SuperStackNode * currentChild;
+		virtual void StateChanged(const std::string & oldState, const std::string & newState) = 0;
+		virtual void FunctionAdded(size_t funcID, const std::string & funcName) = 0;
+		virtual void FunctionListUpdated(void) = 0;
+		virtual void CallTreeUpdated(void) = 0;
 	};
 }
 
