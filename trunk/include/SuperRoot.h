@@ -65,6 +65,9 @@ namespace SuperProfiler
 		**/
 		static void ResetMeasure(void);
 
+		static void SetEnabled(bool setEnabled);
+		static bool GetEnabled(void);
+
 	private:
 		//No default construction!
 		SuperRoot();
@@ -86,6 +89,7 @@ namespace SuperProfiler
 		static SuperFuncDataListWrapper superFuncDataListWrapper;
 		static bool recording;
 		static bool allowThrow;
+		static bool enabled;
 	};
 }
 

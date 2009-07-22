@@ -35,6 +35,7 @@ SuperProfiler::SuperFuncDataListWrapper SuperProfiler::SuperRoot::superFuncDataL
 //Ready to record right away
 bool SuperProfiler::SuperRoot::recording = true;
 bool SuperProfiler::SuperRoot::allowThrow = true;
+bool SuperProfiler::SuperRoot::enabled = true;
 
 namespace SuperProfiler
 {
@@ -121,9 +122,21 @@ namespace SuperProfiler
 	}
 
 
+	void SuperRoot::SetEnabled(bool setEnabled)
+	{
+		enabled = setEnabled;
+	}
+
+
+	bool SuperRoot::GetEnabled(void)
+	{
+		return enabled;
+	}
+
+
 	void SuperRoot::PushProfile(const char * name)
 	{
-		if (recording)
+		if (recording && enabled)
 		{
 			SuperFunctionData * foundFunc = FindFuncData(name);
 			if (!foundFunc)
@@ -143,7 +156,7 @@ namespace SuperProfiler
 
 	void SuperRoot::PopProfile(const char * name)
 	{
-		if (recording)
+		if (recording && enabled)
 		{
 			SuperFunctionData * foundFunc = FindFuncData(name);
 			if (!foundFunc)
