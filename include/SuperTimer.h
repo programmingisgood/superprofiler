@@ -25,25 +25,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SUPERTIMER_H
 #define SUPERTIMER_H
 
-#if defined(WIN32) || defined(_WIN32)
-
-#define USE_WINDOWS_TIMERS
-#define WIN32_LEAN_AND_MEAN
-#define NOWINRES
-#define NOMCX
-#define NOIME
-#define NOMINMAX
-#include <windows.h>
-#include <time.h>
-
-#else
-
-#include <sys/time.h>
-
-#endif
-
 namespace SuperProfiler
 {
+	class SuperTimerImp;
+
 	class SuperTimer
 	{
 	public:
@@ -69,18 +54,7 @@ namespace SuperProfiler
 		**/
 		void RealReset(void);
 
-#ifdef USE_WINDOWS_TIMERS
-		clock_t zeroClock;
-
-		DWORD startTick;
-		LONGLONG lastTime;
-		LARGE_INTEGER startTime;
-		LARGE_INTEGER frequency;
-
-		DWORD timerMask;
-
-		double lastTimeDiff;
-#endif
+		SuperTimerImp * timerImp;
 	};
 }
 

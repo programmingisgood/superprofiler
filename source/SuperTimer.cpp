@@ -22,11 +22,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
 #include "SuperTimer.h"
+
+#if defined(WIN32) || defined(_WIN32)
+
+#define USE_WINDOWS_TIMERS
+#define WIN32_LEAN_AND_MEAN
+#define NOWINRES
+#define NOMCX
+#define NOIME
+#define NOMINMAX
+#include <windows.h>
+#include <time.h>
+
+#else
+
+#include <sys/time.h>
+
+#endif
+
 #include <algorithm>
 
 namespace SuperProfiler
 {
-	SuperTimer::SuperTimer() : timerMask(0), lastTimeDiff(0)
+	class SuperTimerImp
+	{
+	public:
+		SuperTimerImp() : timerMask(0)
+		{
+		}
+
+#ifdef USE_WINDOWS_TIMERS
+		clock_t zeroClock;
+
+		DWORD startTick;
+		LONGLONG lastTime;
+		LARGE_INTEGER startTime;
+		LARGE_INTEGER frequency;
+
+		DWORD timerMask;
+#endif
+	};
+
+
+	SuperTimer::SuperTimer() : timerImp(new SuperTimerImp())
 	{
 		RealReset();
 	}
@@ -34,14 +72,16 @@ namespace SuperProfiler
 
 	SuperTimer::~SuperTimer()
 	{
+		delete timerImp;
+		timerImp = NULL;
 	}
 
 
 	void SuperTimer::Reset(void)
 	{
-		QueryPerformanceCounter(&startTime);
-		startTick = GetTickCount();
-		lastTime = 0;
+		QueryPerformanceCounter(&timerImp->startTime);
+		timerImp->startTick = GetTickCount();
+		timerImp->lastTime = 0;
 	}
 
 
@@ -64,32 +104,32 @@ namespace SuperProfiler
 		}
 
 		//Find the lowest core that this process uses
-		if (timerMask == 0)
+		if (timerImp->timerMask == 0)
 		{
-			timerMask = 1;
-			while ((timerMask & procMask) == 0)
+			timerImp->timerMask = 1;
+			while ((timerImp->timerMask & procMask) == 0)
 			{
-				timerMask <<= 1;
+				timerImp->timerMask <<= 1;
 			}
 		}
 
 		HANDLE thread = GetCurrentThread();
 
 		//Set affinity to the first core
-		DWORD oldMask = SetThreadAffinityMask(thread, timerMask);
+		DWORD oldMask = SetThreadAffinityMask(thread, timerImp->timerMask);
 
 		//Get the constant frequency
-		QueryPerformanceFrequency(&frequency);
+		QueryPerformanceFrequency(&timerImp->frequency);
 
 		//Query the timer
-		QueryPerformanceCounter(&startTime);
-		startTick = GetTickCount();
+		QueryPerformanceCounter(&timerImp->startTime);
+		timerImp->startTick = GetTickCount();
 
 		//Reset affinity
 		SetThreadAffinityMask(thread, oldMask);
 
-		lastTime = 0;
-		zeroClock = clock();
+		timerImp->lastTime = 0;
+		timerImp->zeroClock = clock();
 	}
 
 
@@ -100,7 +140,7 @@ namespace SuperProfiler
 		HANDLE thread = GetCurrentThread();
 
 		//Set affinity to the first core
-		DWORD oldMask = SetThreadAffinityMask(thread, timerMask);
+		DWORD oldMask = SetThreadAffinityMask(thread, timerImp->timerMask);
 
 		//Query the timer
 		QueryPerformanceCounter(&curTime);
@@ -108,28 +148,28 @@ namespace SuperProfiler
 		//Reset affinity
 		SetThreadAffinityMask(thread, oldMask);
 
-		LONGLONG newTime = curTime.QuadPart - startTime.QuadPart;
+		LONGLONG newTime = curTime.QuadPart - timerImp->startTime.QuadPart;
 	    
 		//scale by 1000 for milliseconds
-		unsigned long newTicks = (unsigned long) (1000 * newTime / frequency.QuadPart);
+		unsigned long newTicks = (unsigned long) (1000 * newTime / timerImp->frequency.QuadPart);
 
 		//detect and compensate for performance counter leaps
 		//(surprisingly common, see Microsoft KB: Q274323)
-		unsigned long check = GetTickCount() - startTick;
+		unsigned long check = GetTickCount() - timerImp->startTick;
 		signed long msecOff = (signed long)(newTicks - check);
 		if (msecOff < -100 || msecOff > 100)
 		{
 			//We must keep the timer running forward :)
-			LONGLONG adjust = (std::min)(msecOff * frequency.QuadPart / 1000, newTime - lastTime);
-			startTime.QuadPart += adjust;
+			LONGLONG adjust = (std::min)(msecOff * timerImp->frequency.QuadPart / 1000, newTime - timerImp->lastTime);
+			timerImp->startTime.QuadPart += adjust;
 			newTime -= adjust;
 
 			//Re-calculate milliseconds
-			newTicks = (unsigned long) (1000 * newTime / frequency.QuadPart);
+			newTicks = (unsigned long) (1000 * newTime / timerImp->frequency.QuadPart);
 		}
 
 		//Record last time for adjust
-		lastTime = newTime;
+		timerImp->lastTime = newTime;
 
 		return newTicks / static_cast<double>(1000);
 	}
@@ -142,7 +182,7 @@ namespace SuperProfiler
 		HANDLE thread = GetCurrentThread();
 
 		//Set affinity to the first core
-		DWORD oldMask = SetThreadAffinityMask(thread, timerMask);
+		DWORD oldMask = SetThreadAffinityMask(thread, timerImp->timerMask);
 
 		//Query the timer
 		QueryPerformanceCounter(&curTime);
@@ -150,28 +190,28 @@ namespace SuperProfiler
 		//Reset affinity
 		SetThreadAffinityMask(thread, oldMask);
 
-		LONGLONG newTime = curTime.QuadPart - startTime.QuadPart;
+		LONGLONG newTime = curTime.QuadPart - timerImp->startTime.QuadPart;
 
 		//get milliseconds to check against GetTickCount
-		unsigned long newTicks = (unsigned long) (1000 * newTime / frequency.QuadPart);
+		unsigned long newTicks = (unsigned long) (1000 * newTime / timerImp->frequency.QuadPart);
 
 		//detect and compensate for performance counter leaps
 		//(surprisingly common, see Microsoft KB: Q274323)
-		unsigned long check = GetTickCount() - startTick;
+		unsigned long check = GetTickCount() - timerImp->startTick;
 		signed long msecOff = (signed long) (newTicks - check);
 		if (msecOff < -100 || msecOff > 100)
 		{
 			// We must keep the timer running forward :)
-			LONGLONG adjust = (std::min)(msecOff * frequency.QuadPart / 1000, newTime - lastTime);
-			startTime.QuadPart += adjust;
+			LONGLONG adjust = (std::min)(msecOff * timerImp->frequency.QuadPart / 1000, newTime - timerImp->lastTime);
+			timerImp->startTime.QuadPart += adjust;
 			newTime -= adjust;
 		}
 
 		//Record last time for adjust
-		lastTime = newTime;
+		timerImp->lastTime = newTime;
 
 		//scale by 1000000 for microseconds
-		unsigned long newMicro = (unsigned long) (1000000 * newTime / frequency.QuadPart);
+		unsigned long newMicro = (unsigned long) (1000000 * newTime / timerImp->frequency.QuadPart);
 
 		return newMicro;
 	}
